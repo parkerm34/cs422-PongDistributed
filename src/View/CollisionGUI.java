@@ -23,7 +23,6 @@ public class CollisionGUI extends JFrame {
 	public CollisionGUI( int numBodies, Collision col, String[] args) {
 		this.collision = col;
 		layoutGUI();
-		option = new OptionGUI(this);
 	}
 	
 	private void layoutGUI() {

@@ -36,7 +36,8 @@ public class PongController {
 		if(startArgs.length == 6)
 			col.csv = true;
 		
-
+		gui = new CollisionGUI(2, col, startArgs);
+		
 		if(Integer.parseInt(startArgs[0]) == 1)
 			col.sequentialStart( gui );
 		else

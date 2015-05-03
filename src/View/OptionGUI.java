@@ -2,8 +2,11 @@ package View;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Hashtable;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -11,60 +14,64 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class OptionGUI extends JFrame implements ChangeListener {
+public class OptionGUI extends JFrame implements ActionListener {
 
-	private CollisionGUI colGUI;
-	private JPanel speedPanel;
+	private JPanel buttonPanel;
 	private JPanel optionPanel;
-	private int SLOWEST = 150;
-	private int FASTEST = 0;
-	private int INIT = 75;
-	private int SPACING = SLOWEST/6;
-	private JSlider speed = new JSlider(JSlider.HORIZONTAL, FASTEST, SLOWEST, INIT);
+	private JButton leftButton;
+	private JButton rightButton;
 	public String[] args;
+	private static boolean open = false;
+	private static int side = 0;
 	
-	public OptionGUI( CollisionGUI colGUI ) {
-		this.colGUI = colGUI;
+	public OptionGUI(  ) {
 		layoutGUI();
 	}
 	
 	private void layoutGUI() {
-		setTitle("2D Collisions Options");
+		open = true;
+		setTitle("Pong Options");
 	    setBackground(Color.BLUE);
 	    setLocation(750, 0);
 	    setMinimumSize(new Dimension(200, 100));
 	    
-	    speed.addChangeListener( this );
+	    buttonPanel = new JPanel();
 	    
-	    speed.setMajorTickSpacing( SPACING );
-	    speed.setPaintTicks(true);
+	    leftButton = new JButton("Left Screen");
+	    rightButton = new JButton("Right Screen");
 	    
-	    Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-	    labelTable.put( new Integer( FASTEST ), new JLabel("Slow") );
-	    labelTable.put( new Integer( SLOWEST ), new JLabel("Fast") );
-	    speed.setLabelTable( labelTable );
-
-	    speed.setPaintLabels(true);
+	    leftButton.addActionListener(this);
+	    rightButton.addActionListener(this);
 	    
-	    speedPanel = new JPanel();
-	    speedPanel.add(speed);
+	    buttonPanel.add(leftButton);
+	    buttonPanel.add(rightButton);
 	    
 	    optionPanel = new JPanel();
-	    optionPanel.add(speedPanel);
+	    optionPanel.add(buttonPanel);
 	    
 	    this.add(optionPanel);
 	    
 	    setVisible(true);
 	}
 	
-	@Override
-	public void stateChanged(ChangeEvent e) {
-
-		JSlider source = (JSlider)e.getSource();
-	    if (!source.getValueIsAdjusting()) {
-	        int animSpeed = (int)source.getValue();
-	        colGUI.ANIMATIONTIME = SLOWEST - animSpeed;
-	        System.out.println(SLOWEST - animSpeed);
-	    }
+	public static boolean isOpen()
+	{
+		return open;
 	}
+	
+	public static int getSide() {
+		return side;
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent arg) {
+		if(arg.getSource() == leftButton)
+			side = 1;
+		else
+			side = 2;
+		open = false;
+		System.out.println(open);
+		setVisible(false);
+	}
+	
 }
