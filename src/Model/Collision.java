@@ -46,10 +46,9 @@ public class Collision {
 		workerBodies = new int[w][];
 		numCollisions = 0;
 		numArrived = 1;
-		barrier = new Semaphore[3];
+		barrier = new Semaphore[2];
 		barrier[0] = new Semaphore(0);
 		barrier[1] = new Semaphore(0);
-		barrier[2] = new Semaphore(0);
 		mutex = new Semaphore(1);
 		
 		parseBodies();
@@ -157,7 +156,6 @@ public class Collision {
 				}
 			}
 			
-			calculateForces();
 			moveBodies();
 			detectCollisions();
 			this.gui.updateCircles();
@@ -202,12 +200,8 @@ public class Collision {
 				e.printStackTrace();
 				System.exit(1);
 			}
-			
 		}
-		
 	}
-	
-	
 	
 	// This function is used to separate the bodies via reverse striping into the workers
 	private void parseBodies()
@@ -294,7 +288,6 @@ public class Collision {
 				bodies[count].setXVel(Double.valueOf(tokens[2]));
 				bodies[count].setYVel(Double.valueOf(tokens[3]));
 				bodies[count].setRadius(bodySize);
-				bodies[count].setMass(MASS);
 				count++;
 			}
 			
@@ -304,53 +297,6 @@ public class Collision {
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
-		}
-	}
-	
-	// This function is for the sequential instantiation of Collision.
-	// This function defaults to use all of the bodies for calculating the forces.
-	private void calculateForces() {
-		calculateForcesHelper( 0 );
-	}
-	
-	// This function is for the parallel instantiation of Collision.
-	// This function takes the thread id and says tells the main function
-	// how many bodies to go through as well as exactly which bodies are being
-	// accounted for by this thread
-	protected void calculateForces( int num ) {
-		calculateForcesHelper( num );
-	}
-	
-	// This function has been changed to run through a loop from a given input
-	// rather than going from 0 to numBodies. This is because when going through
-	// the threads, we will not be going through every body in every thread when
-	// this function is called. We also did not want to just create a new function
-	// because the code would be all the same, the only difference being the beginning
-	// and end of the main loop within the function
-	private void calculateForcesHelper( int num ) {
-		double distance, magnitude;
-		Point direction;
-		int body;
-		
-		for(int i = 0; i < workerBodies[num].length; i++)
-		{
-			body = workerBodies[num][i];
-			for(int j = body + 1; j < numBodies; j++)
-			{
-				distance = Math.sqrt((bodies[body].getXPos() - bodies[j].getXPos()) * 
-						 (bodies[body].getXPos() - bodies[j].getXPos()) +
-						 (bodies[body].getYPos() - bodies[j].getYPos()) *
-						 (bodies[body].getYPos() - bodies[j].getYPos()));
-				
-				magnitude = G * bodies[body].getMass() * bodies[j].getMass() / (distance * distance);
-				direction = new Point(bodies[j].getXPos() - bodies[body].getXPos(),
-						bodies[j].getYPos() - bodies[body].getYPos());
-				
-				bodies[body].setXForce(bodies[body].getXForce() + magnitude * direction.x / distance);
-				bodies[j].setXForce(bodies[j].getXForce() - magnitude * direction.x / distance);
-				bodies[body].setYForce(bodies[body].getYForce() + magnitude * direction.y / distance);
-				bodies[j].setYForce(bodies[j].getYForce() - magnitude * direction.y / distance);
-			}
 		}
 	}
 
@@ -381,23 +327,8 @@ public class Collision {
 		{
 			body = workerBodies[num][i];
 			
-			Point deltaV;
-			Point deltaP;
-			
-			deltaV = new Point(bodies[body].getXForce() / bodies[body].getMass() * DT,
-					bodies[body].getYForce() / bodies[body].getMass() * DT);
-			deltaP = new Point( (bodies[body].getXVel() + deltaV.x / 2) * DT,
-					(bodies[body].getYVel() + deltaV.y / 2) * DT);
-			
-			bodies[body].setXVel(bodies[body].getXVel() + deltaV.x);
-			bodies[body].setYVel(bodies[body].getYVel() + deltaV.y);
-			
-			bodies[body].setXPos(bodies[body].getXPos() + deltaP.x);
-			bodies[body].setYPos(bodies[body].getYPos() + deltaP.y);
-			
-			// reset force vector
-			bodies[body].setXForce(0);
-			bodies[body].setYForce(0);
+			bodies[body].setXPos(bodies[body].getXPos() + bodies[body].getXVel() * DT);
+			bodies[body].setYPos(bodies[body].getYPos() + bodies[body].getYVel() * DT);
 		}
 	}
 	

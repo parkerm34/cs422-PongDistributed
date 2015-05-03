@@ -5,55 +5,132 @@ import java.net.*;
 
 import View.OptionGUI;
 
-public class PongClient {
+public class PongClient
+{
+	public final static int LEFT_PORT = 9998;
+	public final static int RIGHT_PORT = 9999;
 	
 	private static OptionGUI options;
 	private static int side;
-	private static String[] start_args;
+	private static Socket socket;
+	private static ObjectInputStream inStream;
+	private static ObjectOutputStream outStream;
 	
-	public static void main(String[] args) {
-		start_args = args;
+	public static void main(String[] args)
+	{
+		String host;
+		
+		if(args.length < 1)
+		{
+			System.out.println("Need to have host arg");
+			System.exit(1);
+		}
+		host = args[0];
+		
+		getSide();
+		if(side == OptionGUI.LEFT_SIDE)
+			initSocketConnections(host, LEFT_PORT);
+		else
+			initSocketConnections(host, RIGHT_PORT);
+		
+		confirmConnection();
+		playPong();
+	}
+
+	private static void getSide()
+	{
 		options = new OptionGUI();
+		
 		while(options.isOpen() == true)
 			System.out.print(" l ");
+		
 		side = options.getSide();
-		System.out.println("done");
-		init();
+		System.out.println("Side = " + side);
 	}
-	public static void init() {
-		String line, host, filename;
-		int tabs;
-		Socket socket;
-		BufferedReader from_server;
-		PrintWriter to_server;
-		System.out.println(side);
+
+	public static void initSocketConnections(String host, int port)
+	{
 		try {
-			if(start_args.length < 2) {
-				System.out.println("need at least 2 args");
-				System.exit(1);
-			}
-			host = start_args[0];
-			filename = start_args[1];
-			tabs = Integer.parseInt(start_args[2]);
-			
-			socket = new Socket(host, 9999);
-			from_server = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			to_server = new PrintWriter(socket.getOutputStream());
-			
-			to_server.println(side);
-			to_server.flush();
-			
-			to_server.println(filename);
-			to_server.flush();
-			while((line = from_server.readLine()) != null)
-			{
-				for(int i = 0; i < tabs; i++)
-					System.out.print("\t");
-				System.out.println(line);
-			}
+			socket = new Socket(host, port);
+			outStream = new ObjectOutputStream(socket.getOutputStream());
+			inStream = new ObjectInputStream(socket.getInputStream());
 		}
 		catch(Exception e) {
 			System.err.println(e);
 		}
 	}
+
+	/* 
+	 * Send an empty (null) message just to mark connection
+	 * Then receive an empty message from the server. This
+	 * will signify that it has received messages from both
+	 * clients and the pong game can begin.
+	 */
+	private static void confirmConnection() {
+		try {
+			outStream.writeObject(null);
+			outStream.flush();
+			
+			inStream.readObject();
+			
+		} catch (IOException | ClassNotFoundException e) {
+			System.err.println(e);
+			e.printStackTrace();
+		}
+	}
+	
+	private static void playPong()
+	{
+		ServerMessage inMsg;
+		ClientMessage outMsg = new ClientMessage();
+		int maxWins = 10;
+		int wins = 0;
+		
+		// initialize pongGUI
+		
+		while(wins < maxWins)
+		{
+			outMsg.setDownKey(getDK());
+			outMsg.setUpKey(getUK());
+			try {
+				// Get new positions from server.
+				inMsg = (ServerMessage)inStream.readObject();
+				
+				if(inMsg.getMatchWon() > 0)
+				{
+					wins++;
+					// TODO: Add in some sort of pause after a won game
+				}
+				
+				// Immediately send server whether up or down are pressed
+				//  so it can start calculating next positions.
+				outStream.writeObject(outMsg);
+				outStream.flush();
+				
+				// update pongGUI with inMsg
+				//   -> Use inMsg.getBallPositions(), inMsg.getPaddleYPos(),
+				//        and inMsg.getMatchWon()
+				
+			} catch (ClassNotFoundException | IOException e) {
+				System.err.println(e);
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private static boolean getUK()
+	{
+		// looks like you have to use listen to KeyEvent to determine if key pressed
+		// source: https://stackoverflow.com/questions/18037576/how-do-i-check-if-the-user-is-pressing-a-key
+		return false;
+	}
+
+	private static boolean getDK()
+	{
+		// looks like you have to use listen to KeyEvent to determine if key pressed
+		// source: https://stackoverflow.com/questions/18037576/how-do-i-check-if-the-user-is-pressing-a-key
+		return false;
+	}
+	
+	
 }

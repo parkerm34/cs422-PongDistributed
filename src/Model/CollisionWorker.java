@@ -27,14 +27,11 @@ public class CollisionWorker extends Thread {
 					System.out.println(" - Before move: xVel: " + parent.getBodies()[body].getXVel() + " yVel: " + parent.getBodies()[body].getYVel());
 				}
 			}
-			parent.calculateForces( id );
+			parent.moveBodies( id );
 			barrier(0);
 			
-			parent.moveBodies( id );
-			barrier(1);
-			
 			parent.detectCollisions( id );
-			barrier(2);
+			barrier(1);
 			
 			if(id == 0)
 				parent.gui.updateCircles();

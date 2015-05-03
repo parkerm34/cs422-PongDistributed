@@ -32,4 +32,4 @@ public class CircleBody extends JPanel
         g2.fill(circle);
     }
 
-} 
+}

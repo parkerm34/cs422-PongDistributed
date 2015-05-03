@@ -16,13 +16,16 @@ import javax.swing.event.ChangeListener;
 
 public class OptionGUI extends JFrame implements ActionListener {
 
+	public final static int LEFT_SIDE = 0;
+	public final static int RIGHT_SIDE = 1;
+	
 	private JPanel buttonPanel;
 	private JPanel optionPanel;
 	private JButton leftButton;
 	private JButton rightButton;
 	public String[] args;
 	private static boolean open = false;
-	private static int side = 0;
+	private static int side = LEFT_SIDE;
 	
 	public OptionGUI(  ) {
 		layoutGUI();
@@ -54,12 +57,12 @@ public class OptionGUI extends JFrame implements ActionListener {
 	    setVisible(true);
 	}
 	
-	public static boolean isOpen()
+	public boolean isOpen()
 	{
 		return open;
 	}
 	
-	public static int getSide() {
+	public int getSide() {
 		return side;
 	}
 
