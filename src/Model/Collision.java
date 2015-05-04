@@ -1,4 +1,4 @@
-package Model;
+package model;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.concurrent.Semaphore;
 
-import View.CollisionGUI;
 
 public class Collision {
 	private final double G = 6.67e-11;
@@ -19,11 +18,10 @@ public class Collision {
 	private int numCollisions;
 	private int numBodies;
 	private double bodySize;
-	private int numTimeSteps;
+	private int numTimeSteps = 10000;
 	private int numWorkers;
 	private int[][] workerBodies;
 	private Body[] bodies;
-	protected CollisionGUI gui;
 	
 	private int numArrived;
 	private Semaphore mutex;
@@ -34,7 +32,7 @@ public class Collision {
 	public boolean csv = false;
 			
 	// Parallel constructor
-	public Collision( int w, int b, double s, int t)
+	public Collision( int w, int b, double s)
 	{
 		if(debug)
 			System.out.println("start parallel");
@@ -42,7 +40,6 @@ public class Collision {
 		numWorkers = w;
 		numBodies = b;
 		bodySize = s;
-		numTimeSteps = t;
 		workerBodies = new int[w][];
 		numCollisions = 0;
 		numArrived = 1;
@@ -56,14 +53,13 @@ public class Collision {
 	}
 	
 	// Sequential constructor
-	public Collision( int b, double s, int t )
+	public Collision( int b, double s )
 	{
 		if(debug)
 			System.out.println("start sequential");
 		
 		numBodies = b;
 		bodySize = s;
-		numTimeSteps = t;
 		workerBodies = new int[1][b];
 		numCollisions = 0;
 		
@@ -73,7 +69,7 @@ public class Collision {
 		readPoints();
 	}
 	
-	public void parallelStart( CollisionGUI gui ) {
+	public void parallelStart() {
 		long startTime, endTime;
 		long seconds, millis;
 		
@@ -132,11 +128,9 @@ public class Collision {
 		
 	}
 	
-	public void sequentialStart( CollisionGUI gui ) {
+	public void sequentialStart() {
 		long startTime, endTime;
 		long seconds, millis;
-		
-		this.gui = gui;
 		
 		endTime = 0;
 		startTime = 0;
@@ -158,7 +152,6 @@ public class Collision {
 			
 			moveBodies();
 			detectCollisions();
-			this.gui.updateCircles();
 			
 			if(debug)
 			{
@@ -553,10 +546,9 @@ public class Collision {
 	public static void usage()
 	{
 		System.out.println("Collisions Usage\n");
-		System.out.println("\tjava Collision w b s t\n");
+		System.out.println("\tjava Collision w b s\n");
 		System.out.println("\tw - Number of workers, 1 to 16. Ignored by sequential program.");
 		System.out.println("\tb - number of bodies.");
 		System.out.println("\ts - size of each body.");
-		System.out.println("\tt - number of time steps.");		
 	}
 }

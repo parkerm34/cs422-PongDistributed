@@ -1,9 +1,11 @@
-package Controller;
+package controller;
 
 import java.io.*;
 import java.net.*;
 
-import View.OptionGUI;
+import model.Body;
+import view.OptionGUI;
+import view.PongGUI;
 
 public class PongClient
 {
@@ -11,22 +13,16 @@ public class PongClient
 	public final static int RIGHT_PORT = 9999;
 	
 	private static OptionGUI options;
-	private static int side;
+	public static int side;
 	private static Socket socket;
 	private static ObjectInputStream inStream;
 	private static ObjectOutputStream outStream;
+	private PongGUI gui;
+	private Body[] balls;
 	
-	public static void main(String[] args)
+	public PongClient( String host )
 	{
-		String host;
-		
-		if(args.length < 1)
-		{
-			System.out.println("Need to have host arg");
-			System.exit(1);
-		}
-		host = args[0];
-		
+		gui = new PongGUI(1, this);
 		getSide();
 		if(side == OptionGUI.LEFT_SIDE)
 			initSocketConnections(host, LEFT_PORT);
@@ -34,6 +30,7 @@ public class PongClient
 			initSocketConnections(host, RIGHT_PORT);
 		
 		confirmConnection();
+//		gui = new PongGUI(balls.length, this);
 		playPong();
 	}
 
@@ -58,6 +55,7 @@ public class PongClient
 		catch(Exception e) {
 			System.err.println(e);
 		}
+		
 	}
 
 	/* 
@@ -68,7 +66,7 @@ public class PongClient
 	 */
 	private static void confirmConnection() {
 		try {
-			outStream.writeObject(null);
+			outStream.writeObject("hello world\n");
 			outStream.flush();
 			
 			inStream.readObject();
@@ -132,5 +130,9 @@ public class PongClient
 		return false;
 	}
 	
+	public Body[] getBodies()
+	{
+		return balls;
+	}
 	
 }

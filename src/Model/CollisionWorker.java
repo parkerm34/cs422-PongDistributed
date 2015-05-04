@@ -1,4 +1,4 @@
-package Model;
+package model;
 
 public class CollisionWorker extends Thread {
 
@@ -33,9 +33,6 @@ public class CollisionWorker extends Thread {
 			parent.detectCollisions( id );
 			barrier(1);
 			
-			if(id == 0)
-				parent.gui.updateCircles();
-
 			
 			if(parent.isDebug())
 			{

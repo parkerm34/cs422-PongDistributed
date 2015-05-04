@@ -1,6 +1,6 @@
-package Controller;
+package controller;
 
-import Model.Point;
+import model.Point;
 
 public class ServerMessage {
 	private Point ballPositions[];

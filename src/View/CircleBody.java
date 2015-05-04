@@ -1,4 +1,4 @@
-package View;
+package view;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -20,7 +20,7 @@ public class CircleBody extends JPanel
 
     public Dimension getPreferredSize()
     {
-         Rectangle bounds = circle.getBounds();
+        Rectangle bounds = circle.getBounds();
         return new Dimension(bounds.width, bounds.height);
     }
 
