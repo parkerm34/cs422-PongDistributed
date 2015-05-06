@@ -9,8 +9,7 @@ import view.PongGUI;
 
 public class PongClient
 {
-	public final static int LEFT_PORT = 9998;
-	public final static int RIGHT_PORT = 9999;
+	public final static int COM_PORT = 9998;
 	
 	private static OptionGUI options;
 	public static int side;
@@ -24,10 +23,7 @@ public class PongClient
 	{
 		gui = new PongGUI(1, this);
 		getSide();
-		if(side == OptionGUI.LEFT_SIDE)
-			initSocketConnections(host, LEFT_PORT);
-		else
-			initSocketConnections(host, RIGHT_PORT);
+		initSocketConnections(host, COM_PORT);
 		
 		confirmConnection();
 //		gui = new PongGUI(balls.length, this);
@@ -49,8 +45,8 @@ public class PongClient
 	{
 		try {
 			socket = new Socket(host, port);
-			outStream = new ObjectOutputStream(socket.getOutputStream());
 			inStream = new ObjectInputStream(socket.getInputStream());
+			outStream = new ObjectOutputStream(socket.getOutputStream());
 		}
 		catch(Exception e) {
 			System.err.println(e);
@@ -64,12 +60,27 @@ public class PongClient
 	 * will signify that it has received messages from both
 	 * clients and the pong game can begin.
 	 */
-	private static void confirmConnection() {
+	private static void confirmConnection()
+	{
+		int serverResponse;
+		
 		try {
-			outStream.writeObject("hello world\n");
+			System.out.println("ConfirmConnection: Before write to server");
+			
+			outStream.writeObject(side);
 			outStream.flush();
 			
-			inStream.readObject();
+			System.out.println("ConfirmConnection: After write to server");
+			
+			serverResponse = (int) inStream.readObject();
+			
+			if(serverResponse != PongServer.SUCCESS)
+			{
+				System.out.println("ConfirmConnection: Server did not send SUCCESS. Sent " + serverResponse + " instead.");
+				System.exit(1);
+			}
+			
+			System.out.println("ConfirmConnection: Received message from server");
 			
 		} catch (IOException | ClassNotFoundException e) {
 			System.err.println(e);
@@ -88,6 +99,8 @@ public class PongClient
 		
 		while(wins < maxWins)
 		{
+			System.out.println("Within playPong, in while loop");
+			
 			outMsg.setDownKey(getDK());
 			outMsg.setUpKey(getUK());
 			try {
