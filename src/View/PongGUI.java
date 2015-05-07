@@ -27,6 +27,7 @@ public class PongGUI extends JFrame {
 	
 	protected int ANIMATIONTIME = 100;
 	private int SIZE = 750;
+	private int offset;
 	
 	public PongGUI( int numBodies, PongClient client) {
 		this.client = client;
@@ -39,9 +40,15 @@ public class PongGUI extends JFrame {
 	    setBackground(Color.BLUE);
 	    
 	    if(client.side == 1)
+	    {
 	    	paddleX = 5;
+	    	offset = SIZE;
+	    }
 	    else
+	    {
 	    	paddleX = SIZE-30;
+	    	offset = 0;
+	    }
 	    
 	    drawPanel = new JPanel();
 	    
@@ -91,7 +98,7 @@ public class PongGUI extends JFrame {
         
 	    for(int i = 0; i < bodies.length; i++)
 	    {
-	    	xCoord = bodies[i].getXPos()*10 + SIZE/2;
+	    	xCoord = bodies[i].getXPos()*10 + offset;
 	    	yCoord = bodies[i].getYPos()*10 + SIZE/2;
 	    	circles[i] = new CircleBody(bodies[i].getRadius() * 10);
 	        circles[i].setLocation((int)xCoord,(int)yCoord);
@@ -123,7 +130,7 @@ public class PongGUI extends JFrame {
         
 	    for(int i = 0; i < bodies.length; i++)
 	    {
-	    	xCoord = bodies[i].getXPos()*10 + SIZE/2;
+	    	xCoord = bodies[i].getXPos()*10 + offset;
 	    	yCoord = bodies[i].getYPos()*10 + SIZE/2;
 	    	circles[i] = new CircleBody(bodies[i].getRadius() * 22);
 	        circles[i].setLocation((int)xCoord,(int)yCoord);
@@ -131,7 +138,7 @@ public class PongGUI extends JFrame {
 	        drawPanel.add(circles[i]);
 	    }
 	    Point loc = paddle.getLocation();
-	    System.out.println("PADDLE LOC: " + loc.x + " " + loc.y);
+	    //System.out.println("PADDLE LOC: " + loc.x + " " + loc.y);
 		paddle.setLocation(loc.x, loc.y);
 		drawPanel.add(paddle);
         drawPanel.repaint();

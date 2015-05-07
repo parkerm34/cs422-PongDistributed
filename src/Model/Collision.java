@@ -42,7 +42,7 @@ public class Collision {
 	 */
 	private int topWall = 0;
 	private int botWall = 750;
-	private int leftPaddle = 15;
+	private int leftPaddle = 10;
 	private int rightPaddle = 720;
 	private int SIZE = 750;
 
@@ -360,7 +360,7 @@ public class Collision {
 	private void detectCollisions() {
 		detectCollisionsHelper( 0 );
 		detectCollisionsWalls( 0 );
-		detectCollisionsPaddle( 0, 0, SIZE, rightPaddle );
+		detectCollisionsPaddle( 0 );
 	}
 	
 	// This function is for the parallel instantiation of Collision.
@@ -370,7 +370,7 @@ public class Collision {
 	protected void detectCollisions( int num ) {
 		detectCollisionsHelper( num );
 		detectCollisionsWalls( num );
-		detectCollisionsPaddle( num, 0, SIZE, rightPaddle );
+		detectCollisionsPaddle( num );
 	}
 
 	// This function has been changed to run through a loop from a given input
@@ -423,13 +423,13 @@ public class Collision {
 	 * as well as rightPaddle and leftPaddle replaced by front. This isnt a hard fix but
 	 * should be done once the servers are talking
 	 */
-	private void detectCollisionsPaddle( int num, int top, int bot, int front ) {
+	private void detectCollisionsPaddle( int num ) {
 		int body;
 		double temp;
 		for(int i = 0; i < workerBodies[num].length; i++)
 		{
 			body = workerBodies[num][i];
-			if(bodies[body].getXPos()*10 +SIZE/2  < leftPaddle )
+			if(bodies[body].getXPos()*10  < leftPaddle - SIZE )
 			{
 				temp = bodies[body].getYPos() * 10 + SIZE/2 + bodies[body].getRadius()*10;
 				if(temp > leftPaddleTop + 1 &&  temp < leftPaddleBot - 1)
@@ -444,8 +444,13 @@ public class Collision {
 					ResolveCollisionPaddle(i);
 					bodies[i].setYVel(PADDLE_CORNER);
 				}
+				else
+				{
+					System.out.println("Round Over, right side wins");
+					// BALL OFF MAP, call game
+				}
 			}
-			if(bodies[body].getXPos()*10  > rightPaddle/2 - 20 )
+			if(bodies[body].getXPos()*10  > rightPaddle - 10 )
 			{
 				temp = bodies[body].getYPos() * 10 + SIZE/2 + bodies[body].getRadius()*10;
 				if(temp > rightPaddleTop + 1  &&  temp < rightPaddleBot - 1)
@@ -460,15 +465,22 @@ public class Collision {
 					ResolveCollisionPaddle(i);
 					bodies[i].setYVel(PADDLE_CORNER);
 				}
+				else
+				{
+					System.out.println("Round Over, left side wins");
+					// BALL OFF MAP, call game
+				}
 			}
 		}
 	}
 	
 	private void ResolveCollisionPaddle(int b) {
+		System.out.println("PADDLE: " + bodies[b].getXPos()*10 + " " + bodies[b].getYPos()*10);
 		bodies[b].setXVel((-1)*(bodies[b].getXVel()));
 	}
 	
 	private void ResolveCollisionWall(int b1) {
+		System.out.println("WALL: " + bodies[b1].getXPos()*10 + " " + bodies[b1].getYPos()*10);
 		bodies[b1].setYVel(-1*(bodies[b1].getYVel()));
 	}
 	

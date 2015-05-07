@@ -69,6 +69,10 @@ public class PongController {
 		else
 			col.parallelStart();
 		
+		//GUI TESTING
+/*		col = new Collision( 2, .5);
+		leftClient = new PongClient("10.0.0.1", col);
+		col.sequentialStart(leftClient.gui);*/
 		//gui.updateCircles();
 	}
 	

@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 
 import model.Body;
+import model.Collision;
 import view.OptionGUI;
 import view.PongGUI;
 
@@ -16,17 +17,18 @@ public class PongClient
 	private static Socket socket;
 	private static ObjectInputStream inStream;
 	private static ObjectOutputStream outStream;
-	private PongGUI gui;
+	protected PongGUI gui;
 	private Body[] balls;
 	
 	public PongClient( String host )
 	{
-		gui = new PongGUI(1, this);
+		gui = new PongGUI(2, this);
+		//gui.updateCircles();
 		getSide();
 		initSocketConnections(host, COM_PORT);
 		
 		confirmConnection();
-//		gui = new PongGUI(balls.length, this);
+		//gui = new PongGUI(balls.length, this);
 		playPong();
 	}
 
