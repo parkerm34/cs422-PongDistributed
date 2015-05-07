@@ -39,7 +39,7 @@ public class PongGUI extends JFrame {
 	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	    setBackground(Color.BLUE);
 	    
-	    if(client.side == 1)
+	    if(client.getSide() == 1)
 	    {
 	    	paddleX = 5;
 	    	offset = SIZE;

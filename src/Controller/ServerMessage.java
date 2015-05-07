@@ -12,7 +12,7 @@ public class ServerMessage {
 		ballPositions = new Point[1];
 		ballPositions[0] = new Point(0, 0);
 		paddleYPos = 0;
-		matchWon = PongServer.NO_WIN;
+		matchWon = PongSubServer.NO_WIN;
 	}
 	
 	public ServerMessage(Point ballPositions[], int paddleYPos, int matchWon)

@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.*;
 
 import model.Body;
-import model.Collision;
 import view.OptionGUI;
 import view.PongGUI;
 
@@ -12,29 +11,28 @@ public class PongClient
 {
 	public final static int COM_PORT = 9998;
 	
-	private static OptionGUI options;
-	public static int side;
-	private static Socket socket;
-	private static ObjectInputStream inStream;
-	private static ObjectOutputStream outStream;
-	protected PongGUI gui;
+	private int side;
+	private ObjectInputStream inStream;
+	private ObjectOutputStream outStream;
+	
+	private PongGUI gui;
 	private Body[] balls;
 	
 	public PongClient( String host )
 	{
-		gui = new PongGUI(2, this);
-		//gui.updateCircles();
-		getSide();
+		//gui = new PongGUI(1, this);
+		chooseSide();
 		initSocketConnections(host, COM_PORT);
 		
-		confirmConnection();
-		//gui = new PongGUI(balls.length, this);
+		balls = ClientHelper.readPoints();
+		// confirmConnection();
+//		gui = new PongGUI(balls.length, this);
 		playPong();
 	}
 
-	private static void getSide()
+	private void chooseSide()
 	{
-		options = new OptionGUI();
+		OptionGUI options = new OptionGUI();
 		
 		while(options.isOpen() == true)
 			System.out.print(" l ");
@@ -43,54 +41,42 @@ public class PongClient
 		System.out.println("Side = " + side);
 	}
 
-	public static void initSocketConnections(String host, int port)
+	private void initSocketConnections(String host, int port)
 	{
+		int serverResponse;
+		Socket socket = null;
+		
 		try {
 			socket = new Socket(host, port);
-			inStream = new ObjectInputStream(socket.getInputStream());
+			
+			System.out.println("Connected to socket");
+			
 			outStream = new ObjectOutputStream(socket.getOutputStream());
+			outStream.writeObject(side);
+			outStream.flush();
+			
+			System.out.println("Sent ouptut");
+			
+			inStream = new ObjectInputStream(socket.getInputStream());
+			serverResponse = (int) inStream.readObject();
+			
+			System.out.println("Read input: " + serverResponse);
+			
+			if(serverResponse != PongSubServer.SUCCESS)
+			{
+				System.out.println("ConfirmConnection: Server did not send SUCCESS. Sent " + serverResponse + " instead.");
+				System.exit(1);
+			}
+			
+			System.out.println("SocketInitialization finished!");
 		}
 		catch(Exception e) {
 			System.err.println(e);
 		}
 		
 	}
-
-	/* 
-	 * Send an empty (null) message just to mark connection
-	 * Then receive an empty message from the server. This
-	 * will signify that it has received messages from both
-	 * clients and the pong game can begin.
-	 */
-	private static void confirmConnection()
-	{
-		int serverResponse;
-		
-		try {
-			System.out.println("ConfirmConnection: Before write to server");
-			
-			outStream.writeObject(side);
-			outStream.flush();
-			
-			System.out.println("ConfirmConnection: After write to server");
-			
-			serverResponse = (int) inStream.readObject();
-			
-			if(serverResponse != PongServer.SUCCESS)
-			{
-				System.out.println("ConfirmConnection: Server did not send SUCCESS. Sent " + serverResponse + " instead.");
-				System.exit(1);
-			}
-			
-			System.out.println("ConfirmConnection: Received message from server");
-			
-		} catch (IOException | ClassNotFoundException e) {
-			System.err.println(e);
-			e.printStackTrace();
-		}
-	}
 	
-	private static void playPong()
+	private void playPong()
 	{
 		ServerMessage inMsg;
 		ClientMessage outMsg = new ClientMessage();
@@ -150,4 +136,8 @@ public class PongClient
 		return balls;
 	}
 	
+	public int getSide()
+	{
+		return side;
+	}
 }
