@@ -19,7 +19,6 @@ public class PongGUI extends JFrame {
 	private Body[] bodies;
 	private CircleBody[] circles;
 	private Paddle paddle;
-	private Paddle paddle2;
 	public OptionGUI option;
 	private int paddleX;
 	public int paddleTop;
@@ -88,7 +87,7 @@ public class PongGUI extends JFrame {
         paddle.setSize(paddle.getPreferredSize());
         drawPanel.add(paddle);
 
-/*        circles = new CircleBody[bodies.length];
+        circles = new CircleBody[bodies.length];
         
 	    for(int i = 0; i < bodies.length; i++)
 	    {
@@ -99,7 +98,7 @@ public class PongGUI extends JFrame {
 	        circles[i].setSize(circles[i].getPreferredSize());
 	        drawPanel.add(circles[i]);
 	    }
-*/
+
         drawPanel.repaint();
 
         this.add(drawPanel);
@@ -108,10 +107,10 @@ public class PongGUI extends JFrame {
 	}
 	
 	public void updateCircles() {
-/*		if(ANIMATIONTIME > 0)
+		if(ANIMATIONTIME > 0)
 		{
 			try {
-				Thread.sleep(ANIMATIONTIME);
+				Thread.sleep(ANIMATIONTIME/10);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -131,16 +130,23 @@ public class PongGUI extends JFrame {
 	        circles[i].setSize(circles[i].getPreferredSize());
 	        drawPanel.add(circles[i]);
 	    }
-
-        drawPanel.repaint();*/
+	    Point loc = paddle.getLocation();
+	    System.out.println("PADDLE LOC: " + loc.x + " " + loc.y);
+		paddle.setLocation(loc.x, loc.y);
+		drawPanel.add(paddle);
+        drawPanel.repaint();
 	}
 	
 	public void updatePaddle( int y ) {
 		Point loc = paddle.getLocation();
-		paddle.setLocation(loc.x, loc.y + y);
-		drawPanel.repaint();
-		paddleTop = loc.y + y;
-		paddleBot = loc.y + y + SIZE/6;
+		if(loc.y + y > -75 && loc.y + y < 675)
+		{
+			paddle.setLocation(loc.x, loc.y + y);
+			drawPanel.add(paddle);
+			drawPanel.repaint();
+			paddleTop = loc.y + y;
+			paddleBot = loc.y + y + SIZE/6;
+		}
 	}
 	
 	public void updateAnimation( int time ) {

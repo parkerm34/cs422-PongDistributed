@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.concurrent.Semaphore;
 
+import view.PongGUI;
+
 
 public class Collision {
 	private final double G = 6.67e-11;
@@ -23,6 +25,34 @@ public class Collision {
 	private int[][] workerBodies;
 	private Body[] bodies;
 	
+	/* These will need to be passed in initially, after the first time it is good
+	 * topWall should always be 0
+	 * botWall comes from SIZE from PongGUI
+	 * leftPaddle is the front of the paddle (should be altered to paddle us possible)
+	 * rightPaddle is the "front" of the right paddle (see code below, needs to be altered a bit)
+	 * SIZE comes from PongGUI
+	 * 
+	 * These are dynamic and must be passed in every time there is a move made
+	 * leftPaddleTop will be passed in every time up or down is pressed on the left client
+	 * leftPaddleBot ""
+	 * rightPaddleTop "" except for on the right client
+	 * rightPaddleBot ""
+	 * 
+	 * This should be simplified into paddleTop and paddleBot if possible
+	 */
+	private int topWall = 0;
+	private int botWall = 750;
+	private int leftPaddle = 15;
+	private int rightPaddle = 720;
+	private int SIZE = 750;
+
+	private int leftPaddleTop = 313;
+	private int leftPaddleBot = 438;
+	private int rightPaddleTop = 313;
+	private int rightPaddleBot = 438;
+	
+	
+	private double PADDLE_CORNER = 20.0;
 	private int numArrived;
 	private Semaphore mutex;
 	private Semaphore[] barrier;
@@ -329,6 +359,8 @@ public class Collision {
 	// This function defaults to use all of the bodies for detecting collisions.
 	private void detectCollisions() {
 		detectCollisionsHelper( 0 );
+		detectCollisionsWalls( 0 );
+		detectCollisionsPaddle( 0, 0, SIZE, rightPaddle );
 	}
 	
 	// This function is for the parallel instantiation of Collision.
@@ -337,6 +369,8 @@ public class Collision {
 	// accounted for by this thread
 	protected void detectCollisions( int num ) {
 		detectCollisionsHelper( num );
+		detectCollisionsWalls( num );
+		detectCollisionsPaddle( num, 0, SIZE, rightPaddle );
 	}
 
 	// This function has been changed to run through a loop from a given input
@@ -368,6 +402,74 @@ public class Collision {
 			}
 		}
 		
+	}
+	
+	private void detectCollisionsWalls( int num )
+	{
+		int body;
+		for(int i = 0; i < workerBodies[num].length; i++)
+		{
+				body = workerBodies[num][i];
+				if(bodies[body].getYPos()*10 + SIZE/2 - topWall <= bodies[body].getRadius()){
+					ResolveCollisionWall(i);
+				}
+				else if(bodies[body].getYPos()*10 + SIZE/2 - botWall + 30 >= bodies[body].getRadius())
+					ResolveCollisionWall(i);
+		}
+		
+	}
+	
+	/* This function should be simplified to only had to use top and bottom 
+	 * as well as rightPaddle and leftPaddle replaced by front. This isnt a hard fix but
+	 * should be done once the servers are talking
+	 */
+	private void detectCollisionsPaddle( int num, int top, int bot, int front ) {
+		int body;
+		double temp;
+		for(int i = 0; i < workerBodies[num].length; i++)
+		{
+			body = workerBodies[num][i];
+			if(bodies[body].getXPos()*10 +SIZE/2  < leftPaddle )
+			{
+				temp = bodies[body].getYPos() * 10 + SIZE/2 + bodies[body].getRadius()*10;
+				if(temp > leftPaddleTop + 1 &&  temp < leftPaddleBot - 1)
+					ResolveCollisionPaddle(i);
+				else if(temp >= leftPaddleTop - 3 && temp <= leftPaddleTop + 1)
+				{
+					ResolveCollisionPaddle(i);
+					bodies[i].setYVel(-PADDLE_CORNER);
+				}
+				else if(temp >= leftPaddleBot - 1 && temp <= leftPaddleBot + 3)
+				{
+					ResolveCollisionPaddle(i);
+					bodies[i].setYVel(PADDLE_CORNER);
+				}
+			}
+			if(bodies[body].getXPos()*10  > rightPaddle/2 - 20 )
+			{
+				temp = bodies[body].getYPos() * 10 + SIZE/2 + bodies[body].getRadius()*10;
+				if(temp > rightPaddleTop + 1  &&  temp < rightPaddleBot - 1)
+					ResolveCollisionPaddle(i);
+				else if(temp >= rightPaddleTop - 3 && temp <= rightPaddleTop + 1)
+				{
+					ResolveCollisionPaddle(i);
+					bodies[i].setYVel(-PADDLE_CORNER);
+				}
+				else if(temp >= rightPaddleBot - 1 && temp <= rightPaddleBot + 3)
+				{
+					ResolveCollisionPaddle(i);
+					bodies[i].setYVel(PADDLE_CORNER);
+				}
+			}
+		}
+	}
+	
+	private void ResolveCollisionPaddle(int b) {
+		bodies[b].setXVel((-1)*(bodies[b].getXVel()));
+	}
+	
+	private void ResolveCollisionWall(int b1) {
+		bodies[b1].setYVel(-1*(bodies[b1].getYVel()));
 	}
 	
 	private void ResolveCollision(int b1, int b2) {
