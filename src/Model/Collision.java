@@ -28,7 +28,7 @@ public class Collision {
 	/* These will need to be passed in initially, after the first time it is good
 	 * topWall should always be 0
 	 * botWall comes from SIZE from PongGUI
-	 * leftPaddle is the front of the paddle (should be altered to paddle us possible)
+	 * leftPaddle is the front of the paddle (should be altered to paddle if possible to use same code)
 	 * rightPaddle is the "front" of the right paddle (see code below, needs to be altered a bit)
 	 * SIZE comes from PongGUI
 	 * 

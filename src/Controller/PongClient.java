@@ -18,15 +18,27 @@ public class PongClient
 	private PongGUI gui;
 	private Body[] balls;
 	
+	// Input: Needs string that is the hosts IP on startup, gotten through command line.
+	//		  Needs input to declare the ball array. I think we should do this on the server
+	//			and implement it by having a function on the server that redefines the ball array
+	//			given an input and a player can do it at any time by clicking a button the resets the
+	//			game with the number of balls specified.... if you want to do it through a command
+	//			line argument to make it easier then by all means. Command line argument should probably
+	//			be the first idea to do, and figure out the former later.
+	//
+	// Outputs: rather than sending when a button is pressed, I would rather send the position
+	//				of the paddle. The only problem I see is that there might be a little bit of lag time
+	//				but if it comes down to it we should be able to make a quick adjustment for the location
+	//				to be calculated on the server then sent out or something like that.... let me know
 	public PongClient( String host )
 	{
-		//gui = new PongGUI(1, this);
+		//gui = new PongGUI(this);
 		chooseSide();
 		initSocketConnections(host, COM_PORT);
 		
 		balls = ClientHelper.readPoints();
 		// confirmConnection();
-//		gui = new PongGUI(balls.length, this);
+		gui = new PongGUI(this);
 		playPong();
 	}
 

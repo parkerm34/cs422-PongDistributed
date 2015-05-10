@@ -29,7 +29,19 @@ public class PongGUI extends JFrame {
 	private int SIZE = 750;
 	private int offset;
 	
-	public PongGUI( int numBodies, PongClient client) {
+	// The gui is generated with a given client. Each client will need a storage
+	// for the balls array. 
+	//
+	// INPUTS: For the inputs of this, every time we want to redraw,
+	//			we are going to need the positions of the balls currently as well as
+	//			the position of the paddle. Currently this is done through getting the
+	//			balls from the bodies array in the client. The paddle is stored in the gui
+	//			and will need its location sent through the socket.
+	//
+	// OUTPUTS: Paddle position when a key is pressed up for down is updated.
+	//				This position needs to be sent every time the display is updated
+	//				so that the server can send to the other client the position of the other paddle.
+	public PongGUI( PongClient client) {
 		this.client = client;
 		layoutGUI();
 	}

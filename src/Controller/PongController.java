@@ -21,6 +21,17 @@ public class PongController {
 		startArgs = args;
 		startCollisionGUI( );
 	}
+	
+	// Takes in the command line arguments, some of these will have to be sent through socket
+	// host is the IP
+	// first is whether it is a client or server. For testing reasons I switched it to take in
+	// 		l(left) or r(ight) for client, but will probably change to just client and leave
+	//		the side picking for the gui
+	// NUM_PROCS is the number of processes for the game worker, it defaults to 1
+	//
+	// This class is also going to need the number of balls to start the game with. I was
+	// 		thinking leaving the default as 1, then go through and either use a command line argument
+	//		or put it in a menu. I can create a quick mockup options menu if you feel like we should do that...
 	public static void startCollisionGUI( ) {
 
 		String[] args = startArgs;
