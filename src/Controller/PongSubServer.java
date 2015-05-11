@@ -5,6 +5,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+import model.Body;
+import model.Point;
+
 import view.OptionGUI;
 
 public class PongSubServer extends Thread
@@ -17,30 +20,67 @@ public class PongSubServer extends Thread
 	private static ObjectInputStream inStream;
 	private static ObjectOutputStream outStream;
 	
-	private int side;
+	PongServer parent;
+	Socket socket;
+	int num;
+	int side;
 	
-	private Socket socket;
-	
-	public PongSubServer(Socket socket)
+	public PongSubServer(PongServer server, Socket socket, int serverNum)
 	{
+		parent = server;
 		this.socket = socket;
+		num = serverNum;
 	}
 	
 	public void run()
 	{
 		initSocketConnections();
-		playPong();
+		while(true)
+		{
+			try {
+				parent.barrier[side].acquire();
+			} catch (InterruptedException e) {
+				System.err.println(e);
+				e.printStackTrace();
+			}
+			sendUpdates();
+			parent.barrier[2].release();
+		}
+	}
+
+	public void sendUpdates()
+	{
+		ServerMessage update = null;
+		Point bodyPoints[] = null;
+		
+		for(int i = 0; i < parent.numBodies; i++)
+			bodyPoints[i] = parent.bodies[i].getPos();
+		
+		update.setBallPositions(bodyPoints);
+		update.setMatchWon(NO_WIN);
+		update.setPaddleYPos(parent.paddleYPos[side]);
+		
+		try {
+			outStream.writeObject(bodyPoints);
+			outStream.flush();
+			
+			System.out.println("Sent body positions");
+			
+			parent.keyPressed[side] = (int)inStream.readObject();
+		} catch (IOException | ClassNotFoundException e) {
+			System.err.println(e);
+			e.printStackTrace();
+		}
 	}
 
 	public void initSocketConnections()
 	{
+		Point bodyPoints[] = null;
 		int input = 0;
 		
 		try {
 			inStream = new ObjectInputStream(socket.getInputStream());
 			input = (int) inStream.readObject();
-			
-			System.out.println("Got first input from: " + input);
 			
 		} catch (IOException | ClassNotFoundException e) {
 			System.err.println(e);
@@ -48,11 +88,7 @@ public class PongSubServer extends Thread
 		}
 		
 		// if one input is not left and the other right, then inStream got incorrect value(s); exit(1)
-		if(input == OptionGUI.LEFT_SIDE)
-			side = OptionGUI.LEFT_SIDE;
-		else if(input == OptionGUI.RIGHT_SIDE)
-			side = OptionGUI.RIGHT_SIDE;
-		else
+		if(input != OptionGUI.LEFT_SIDE || input != OptionGUI.RIGHT_SIDE)
 		{
 			System.out.println("SubServer: initSocketConnections did not get expected inStream messages from client");
 			System.out.println("Input message expected: " + OptionGUI.LEFT_SIDE + " (left) OR " + OptionGUI.RIGHT_SIDE + " (right)");
@@ -60,48 +96,26 @@ public class PongSubServer extends Thread
 			System.exit(1);
 		}
 		
-		System.out.println("Passed input check");
+		side = input;
 		
+		System.out.println("Subserver " + num + " got init message from: " +
+				(input == OptionGUI.LEFT_SIDE ? "left" : "right") + " side.");
+
 		try {
 			outStream = new ObjectOutputStream(socket.getOutputStream());
-			outStream.writeObject(SUCCESS);
+			
+			for(int i = 0; i < parent.numBodies; i++)
+				bodyPoints[i] = parent.bodies[i].getPos();
+			
+			outStream.writeObject(bodyPoints);
 			outStream.flush();
 			
-			System.out.println("Sent output");
 		} catch (IOException e) {
 			System.err.println(e);
 			e.printStackTrace();
 		}
 		
-		System.out.println("Server got in and out streams!");
-	}
-	
-	private void playPong() {
-		ClientMessage inMsg = new ClientMessage();
-		ServerMessage outMsg = new ServerMessage();
 		
-		System.out.println("in playPong");
-		
-		while(true)
-		{
-			try {
-				outStream.writeObject(outMsg);
-				outStream.flush();
-				
-				inMsg = (ClientMessage)inStream.readObject();
-				
-				System.out.println("Side: " + side + " sent: " + inMsg.getDownKey());
-				
-				/* 
-				 * Call collision functions to determine new positions, velocities, 
-				 * and collisions of ball(s) and paddles
-				 */
-				
-			} catch (IOException | ClassNotFoundException e) {
-				System.err.println(e);
-				e.printStackTrace();
-			}
-		}
+		System.out.println("Subserver " + num + " finished receiving input and sending output!");
 	}
-	
 }

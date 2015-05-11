@@ -13,6 +13,7 @@ public class CollisionWorker extends Thread {
 	
 	public void run()
 	{
+		/*
 		for(int i = 0; i < parent.getNumTimeSteps(); i++)
 		{
 			if(parent.isDebug())
@@ -47,10 +48,12 @@ public class CollisionWorker extends Thread {
 				System.out.println();
 			}
 		}
+		*/
 	}
 	
 	private void barrier(int barrierIndex) {
 		// All processes before the last wait
+		/*
 		parent.aquireMutex();
 		if(parent.getNumArrived() < parent.getNumWorkers())
 		{
@@ -64,5 +67,6 @@ public class CollisionWorker extends Thread {
 			parent.releaseAllBarrier(barrierIndex);
 			parent.releaseMutex();
 		}
+		*/
 	}
 }

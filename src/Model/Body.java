@@ -1,49 +1,29 @@
 package model;
 
+import view.PongGUI;
+
 public class Body {
 	private Point pos;
 	private Point vel;
-	private double radius;
 	
-	public Body( Point pos, Point vel, Point force, double mass, double radius )
+	public Body( Point pos, Point vel, double radius )
 	{
 		this.pos = new Point(pos.x, pos.y);
 		this.vel = new Point(vel.x, vel.y);
-		this.radius = radius;
 	}
 	
 	public Body( double xPos, double yPos, double xVel, double yVel, double radius )
 	{
 		this.pos = new Point(xPos, yPos);
 		this.vel = new Point(xVel, yVel);
-		this.radius = radius;
 	}
 	
-	public Body( )
+	public Body()
 	{
-		this.pos = new Point(1.0f, 1.0f);
-		this.vel = new Point(0.0f, 0.0f);
-		this.radius = 0.0f;
-	}
-	
-	public double getXPos()
-	{
-		return this.pos.x;
-	}
-	
-	public double getYPos()
-	{
-		return this.pos.y;
-	}
-	
-	public double getXVel()
-	{
-		return this.vel.x;
-	}
-	
-	public double getYVel()
-	{
-		return this.vel.y;
+		double defaultPos = PongGUI.SIZE / 2.0;
+		
+		this.pos = new Point(defaultPos, defaultPos);
+		this.vel = new Point(1.0, 0.0);
 	}
 	
 	public void setXPos( double xPos )
@@ -66,6 +46,26 @@ public class Body {
 		this.vel.y = yVel;
 	}
 
+	public double getXPos()
+	{
+		return this.pos.x;
+	}
+	
+	public double getYPos()
+	{
+		return this.pos.y;
+	}
+	
+	public double getXVel()
+	{
+		return this.vel.x;
+	}
+	
+	public double getYVel()
+	{
+		return this.vel.y;
+	}
+
 	public void setPos( Point pos )
 	{
 		this.pos = pos;
@@ -83,15 +83,5 @@ public class Body {
 	public Point getVel( )
 	{
 		return this.vel;
-	}
-	
-	public void setRadius( double radius )
-	{
-		this.radius = radius;
-	}
-	
-	public double getRadius( )
-	{
-		return this.radius;
 	}
 }

@@ -66,9 +66,9 @@ public class OptionGUI extends JFrame implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent arg) {
 		if(arg.getSource() == leftButton)
-			side = 1;
+			side = LEFT_SIDE;
 		else
-			side = 2;
+			side = RIGHT_SIDE;
 		open = false;
 		System.out.println(open);
 		setVisible(false);

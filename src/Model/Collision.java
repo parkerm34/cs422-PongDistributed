@@ -1,115 +1,64 @@
 package model;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.concurrent.Semaphore;
+import controller.PongServer;
 
 import view.PongGUI;
 
 
 public class Collision {
-	private final double G = 6.67e-11;
-	private final double DT = 0.01f;
-	private final double MASS = 1.0f;
-	
-	private int numCollisions;
-	private int numBodies;
-	private double bodySize;
-	private int numTimeSteps = 10000;
-	private int numWorkers;
-	private int[][] workerBodies;
-	private Body[] bodies;
+	private final static double DT = 0.01f;
+	// private static int[][] PongServer.workerBodies;
 	
 	/* These will need to be passed in initially, after the first time it is good
 	 * topWall should always be 0
-	 * botWall comes from SIZE from PongGUI
-	 * leftPaddle is the front of the paddle (should be altered to paddle if possible to use same code)
+	 * botWall comes from PongGUI.SIZE from PongGUI
+	 * leftPaddle is the front of the paddle (should be altered to paddle us possible)
 	 * rightPaddle is the "front" of the right paddle (see code below, needs to be altered a bit)
-	 * SIZE comes from PongGUI
+	 * PongGUI.SIZE comes from PongGUI
 	 * 
 	 * These are dynamic and must be passed in every time there is a move made
-	 * leftPaddleTop will be passed in every time up or down is pressed on the left client
-	 * leftPaddleBot ""
-	 * rightPaddleTop "" except for on the right client
-	 * rightPaddleBot ""
+	 * paddleTop[0] will be passed in every time up or down is pressed on the left client
+	 * paddleBot[0] ""
+	 * paddleTop[1] "" except for on the right client
+	 * paddleBot[1] ""
 	 * 
 	 * This should be simplified into paddleTop and paddleBot if possible
 	 */
-	private int topWall = 0;
-	private int botWall = 750;
-	private int leftPaddle = 10;
-	private int rightPaddle = 720;
-	private int SIZE = 750;
+	private static int topWall = 0;
+	private static int botWall = 750;
+	private static int leftPaddle = 10;
+	private static int rightPaddle = 720;
 
-	private int leftPaddleTop = 313;
-	private int leftPaddleBot = 438;
-	private int rightPaddleTop = 313;
-	private int rightPaddleBot = 438;
+	private static int paddleTop[];
+	private static int paddleBot[];
 	
+	private static double PADDLE_CORNER = 20.0;
+	public static final int PADDLE_MOVE = 10;
+	// private Semaphore mutex;
+	// private Semaphore[] barrier;
 	
-	private double PADDLE_CORNER = 20.0;
-	private int numArrived;
-	private Semaphore mutex;
-	private Semaphore[] barrier;
+	public static boolean debug = false;
 	
-	private File output;
-	public boolean debug = false;
-	public boolean csv = false;
-			
-	// Parallel constructor
-	public Collision( int w, int b, double s)
+	public void initCollision()
 	{
-		if(debug)
-			System.out.println("start parallel");
-
-		numWorkers = w;
-		numBodies = b;
-		bodySize = s;
-		workerBodies = new int[w][];
-		numCollisions = 0;
-		numArrived = 1;
+		paddleTop = new int[2];
+		paddleBot = new int[2];
+		paddleTop[0] = 313;
+		paddleBot[0] = 438;
+		paddleTop[1] = 313;
+		paddleBot[1] = 438;
+	}
+	
+	/*
+	public void parallelStart()
+	{
 		barrier = new Semaphore[2];
 		barrier[0] = new Semaphore(0);
 		barrier[1] = new Semaphore(0);
 		mutex = new Semaphore(1);
-		
-		parseBodies();
-		readPoints();
-	}
 	
-	// Sequential constructor
-	public Collision( int b, double s )
-	{
-		if(debug)
-			System.out.println("start sequential");
-		
-		numBodies = b;
-		bodySize = s;
-		workerBodies = new int[1][b];
-		numCollisions = 0;
-		
-		for(int i = 0; i < b; i ++)
-			workerBodies[0][i] = i;
-		
-		readPoints();
-	}
-	
-	public void parallelStart() {
-		long startTime, endTime;
-		long seconds, millis;
-		
-		endTime = 0;
-
 		CollisionWorker[] threads = new CollisionWorker[numWorkers];
 		for(int i = 0; i < numWorkers; i++)
 			threads[i] = new CollisionWorker(i, this);
-
-		startTime = System.currentTimeMillis();
 		
 		for(int i = 0; i < numWorkers; i++)
 			threads[i].start();
@@ -122,210 +71,80 @@ public class Collision {
 				e.printStackTrace();
 			}
 		}
-		
-		endTime = System.currentTimeMillis();
-		
-		endCollision();
-		
-		seconds = (endTime - startTime) / 1000;
-		millis = (endTime - startTime) % 1000;
-		
-		System.out.println("computation time: " + seconds + " seconds " +
-				millis + " milliseconds");
-		System.out.println("number of collisions detected = " + numCollisions);
-		
-		if(csv)
-		{	
-			FileOutputStream tempOut;
-			BufferedWriter bufferOut;
-			
-			try {
-				
-				output = new File("output.txt");
-				tempOut = new FileOutputStream(output);
-				bufferOut = new BufferedWriter(new OutputStreamWriter(tempOut));
-				
-				bufferOut.write(seconds + "," + millis + "\n");
-				
-				bufferOut.close();
-				
-			} catch (IOException e) {
-				e.printStackTrace();
-				System.exit(1);
-			}
-			
-		}
-		
 	}
+	*/
 	
-	public void sequentialStart() {
-		long startTime, endTime;
-		long seconds, millis;
-		
-		endTime = 0;
-		startTime = 0;
-		
-		startTime = System.currentTimeMillis();
-		
-		for(int i = 0; i < getNumTimeSteps(); i++)
-		{
-			if(debug)
-			{
-				System.out.println("Before TR " + i + ": Number of collisions: " + numCollisions);
-				for(int j = 0; j < numBodies; j++)
-				{
-					System.out.println("Body: " + j);
-					System.out.println(" - Before move: xPos: " + bodies[j].getXPos() + " yPos: " + bodies[j].getYPos());
-					System.out.println(" - Before move: xVel: " + bodies[j].getXVel() + " yVel: " + bodies[j].getYVel());
-				}
-			}
-			
-			moveBodies();
-			detectCollisions();
-			
-			if(debug)
-			{
-				for(int j = 0; j < numBodies; j++)
-				{
-					System.out.println("Body: " + j);
-					System.out.println(" - After move: xPos: " + bodies[j].getXPos() + " yPos: " + bodies[j].getYPos());
-					System.out.println(" - After move: xVel: " + bodies[j].getXVel() + " yVel: " + bodies[j].getYVel());
-				}
-				System.out.println();
-			}
-		}
-		
-		endTime = System.currentTimeMillis();
-		
-		seconds = (endTime - startTime) / 1000;
-		millis = (endTime - startTime) % 1000;
-		
-		System.out.println("computation time: " + seconds + " seconds " +
-				millis + " milliseconds");
-		System.out.println("number of collisions detected = " + numCollisions);
-		
-		if(csv)
-		{	
-			FileOutputStream tempOut;
-			BufferedWriter bufferOut;
-			
-			try {
-				
-				output = new File("output.txt");
-				tempOut = new FileOutputStream(output);
-				bufferOut = new BufferedWriter(new OutputStreamWriter(tempOut));
-				
-				bufferOut.write(seconds + "," + millis + "\n");
-				
-				bufferOut.close();
-				
-			} catch (IOException e) {
-				e.printStackTrace();
-				System.exit(1);
-			}
-		}
-	}
-	
-	// This function is used to separate the bodies via reverse striping into the workers
-	private void parseBodies()
+	public static void sequentialStep()
 	{
-		int curr;
-		int division = numBodies / numWorkers;
-		boolean iterateFirst = division % 2 == 0;
-		
-		for(int i = 0; i < numWorkers; i++)
+		if(debug)
 		{
-			if(iterateFirst && i < numBodies % numWorkers)
-				workerBodies[i] = new int[division + 1];
-			else if(!iterateFirst && i >= (numWorkers - numBodies % numWorkers))
-					workerBodies[i] = new int[division + 1];
-			else
-				workerBodies[i] = new int[division];
-		}
-		
-		for(int i = 0; i < numWorkers; i++)
-		{
-			curr = 0;
-			for(int j = 0; j < workerBodies[i].length; j++)
+			for(int j = 0; j < PongServer.numBodies; j++)
 			{
-				workerBodies[i][j] = curr + (j % 2 == 0 ? i : numWorkers - (i + 1));
-				curr += numWorkers;
+				System.out.println("Body: " + j);
+				System.out.println(" - Before move: xPos: " + PongServer.bodies[j].getXPos() + " yPos: " + PongServer.bodies[j].getYPos());
+				System.out.println(" - Before move: xVel: " + PongServer.bodies[j].getXVel() + " yVel: " + PongServer.bodies[j].getYVel());
 			}
 		}
-	}
-	
-	// This code would be repeated in the constructors, so we pulled it out to make
-	// the code more modular. This function writes to the output file and closes it.
-	private void endCollision() {
-		File file;
-		FileOutputStream fileOut;
-		BufferedWriter buffer;
 		
-		try {
-			
-			file = new File("results.txt");
-			fileOut = new FileOutputStream(file);
-			buffer = new BufferedWriter(new OutputStreamWriter(fileOut));
-			
-			buffer.write("Final Positions:\n");
-			for(int i = 0; i < numBodies; i++)
-				buffer.write("Body " + i + ": (" + String.format("%.4f", bodies[i].getXPos()) + ", " + 
-						String.format("%.4f", bodies[i].getYPos()) + ")\n");
-			
-			buffer.write("\nFinal Velocities:\n");
-			for(int i = 0; i < numBodies; i++)
-				buffer.write("Body " + i + ": (" + String.format("%.4f", bodies[i].getXVel()) + ", " +
-						String.format("%.4f", bodies[i].getYVel()) + ")\n");
-				
-			buffer.close();
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.exit(1);
+		moveBodies();
+		movePaddles();
+		detectCollisions();
+		
+		if(debug)
+		{
+			for(int j = 0; j < PongServer.numBodies; j++)
+			{
+				System.out.println("Body: " + j);
+				System.out.println(" - After move: xPos: " + PongServer.bodies[j].getXPos() + " yPos: " + PongServer.bodies[j].getYPos());
+				System.out.println(" - After move: xVel: " + PongServer.bodies[j].getXVel() + " yVel: " + PongServer.bodies[j].getYVel());
+			}
+			System.out.println();
 		}
 	}
-	
-	// This code would be repeated in the constructors, so we pulled it out to make
-	// the code more modular. This code reads an input file and initializes points
-	// from the file, giving their initial position and velocity in terms of x and y.
-	private void readPoints() {
-		int count;
-		BufferedReader readBuffer;
-		String currLine;
-		String[] tokens;
-		
-		count = 0;
-		
-		bodies = new Body[numBodies];
-		for(int i = 0; i < numBodies; i++)
-			bodies[i] = new Body();
-		
-		try {
-			readBuffer = new BufferedReader(new FileReader("points.dat"));
-			
-			while((currLine = readBuffer.readLine()) != null && count < numBodies)
+
+	private static void movePaddles() {
+		if(PongServer.keyPressed[0] == PongGUI.UP_KEY)
+		{
+			if(PongServer.paddleYPos[0] > -75)
 			{
-				tokens = currLine.split(" ");
-				bodies[count].setXPos(Double.valueOf(tokens[0]));
-				bodies[count].setYPos(Double.valueOf(tokens[1]));
-				bodies[count].setXVel(Double.valueOf(tokens[2]));
-				bodies[count].setYVel(Double.valueOf(tokens[3]));
-				bodies[count].setRadius(bodySize);
-				count++;
+				PongServer.paddleYPos[0] -= PADDLE_MOVE;
+				paddleBot[0] -= PADDLE_MOVE;
+				paddleTop[0] -= PADDLE_MOVE;
 			}
-			
-		} catch (FileNotFoundException e1) {
-			System.out.println("points.dat couldnt be opened.");
-			System.exit(1);
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.exit(1);
+		}
+		else if(PongServer.keyPressed[0] == PongGUI.DOWN_KEY)
+		{
+			if(PongServer.paddleYPos[0] < 675)
+			{
+				PongServer.paddleYPos[0] += PADDLE_MOVE;
+				paddleBot[0] += PADDLE_MOVE;
+				paddleTop[0] += PADDLE_MOVE;
+			}
+		}
+		
+		if(PongServer.keyPressed[1] == PongGUI.UP_KEY)
+		{
+			if(PongServer.paddleYPos[1] > -75)
+			{
+				PongServer.paddleYPos[1] -= PADDLE_MOVE;
+				paddleBot[1] -= PADDLE_MOVE;
+				paddleTop[1] -= PADDLE_MOVE;
+			}
+		}
+		else if(PongServer.keyPressed[1] == PongGUI.DOWN_KEY)
+		{
+			if(PongServer.paddleYPos[1] < 675)
+			{
+				PongServer.paddleYPos[1] += PADDLE_MOVE;
+				paddleBot[1] += PADDLE_MOVE;
+				paddleTop[1] += PADDLE_MOVE;
+			}
 		}
 	}
 
 	// This function is for the sequential instantiation of Collision.
 	// This function defaults to use all of the bodies for moving the bodies.
-	private void moveBodies() {
+	private static void moveBodies() {
 		moveBodiesHelper( 0 );
 	}
 	
@@ -338,26 +157,26 @@ public class Collision {
 	}
 	
 	// This function has been changed to run through a loop from a given input
-	// rather than going from 0 to numBodies. This is because when going through
+	// rather than going from 0 to PongServer.numBodies. This is because when going through
 	// the threads, we will not be going through every body in every thread when
 	// this function is called. We also did not want to just create a new function
 	// because the code would be all the same, the only difference being the beginning
 	// and end of the main loop within the function
-	private void moveBodiesHelper( int num ) {
+	private static void moveBodiesHelper( int num ) {
 		int body;
 		
-		for(int i = 0; i < workerBodies[num].length; i++)
+		for(int i = 0; i < PongServer.workerBodies[num].length; i++)
 		{
-			body = workerBodies[num][i];
+			body = PongServer.workerBodies[num][i];
 			
-			bodies[body].setXPos(bodies[body].getXPos() + bodies[body].getXVel() * DT);
-			bodies[body].setYPos(bodies[body].getYPos() + bodies[body].getYVel() * DT);
+			PongServer.bodies[body].setXPos(PongServer.bodies[body].getXPos() + PongServer.bodies[body].getXVel() * DT);
+			PongServer.bodies[body].setYPos(PongServer.bodies[body].getYPos() + PongServer.bodies[body].getYVel() * DT);
 		}
 	}
 	
 	// This function is for the sequential instantiation of Collision.
 	// This function defaults to use all of the bodies for detecting collisions.
-	private void detectCollisions() {
+	private static void detectCollisions() {
 		detectCollisionsHelper( 0 );
 		detectCollisionsWalls( 0 );
 		detectCollisionsPaddle( 0 );
@@ -374,47 +193,46 @@ public class Collision {
 	}
 
 	// This function has been changed to run through a loop from a given input
-	// rather than going from 0 to numBodies. This is because when going through
+	// rather than going from 0 to PongServer.numBodies. This is because when going through
 	// the threads, we will not be going through every body in every thread when
 	// this function is called. We also did not want to just create a new function
 	// because the code would be all the same, the only difference being the beginning
 	// and end of the main loop within the function
-	private void detectCollisionsHelper( int num )
+	private static void detectCollisionsHelper( int num )
 	{
 		double distance;
 		int body;
 		
-		for(int i = 0; i < workerBodies[num].length; i++)
+		for(int i = 0; i < PongServer.workerBodies[num].length; i++)
 		{
-			body = workerBodies[num][i];
-			for(int j = body + 1; j < numBodies; j++)
+			body = PongServer.workerBodies[num][i];
+			for(int j = body + 1; j < PongServer.numBodies; j++)
 			{
-				distance = Math.sqrt((bodies[body].getXPos() - bodies[j].getXPos()) *
-						(bodies[body].getXPos() - bodies[j].getXPos()) +
-						(bodies[body].getYPos() - bodies[j].getYPos()) *
-						(bodies[body].getYPos() - bodies[j].getYPos()));
+				distance = Math.sqrt((PongServer.bodies[body].getXPos() - PongServer.bodies[j].getXPos()) *
+						(PongServer.bodies[body].getXPos() - PongServer.bodies[j].getXPos()) +
+						(PongServer.bodies[body].getYPos() - PongServer.bodies[j].getYPos()) *
+						(PongServer.bodies[body].getYPos() - PongServer.bodies[j].getYPos()));
 				
-				if( distance <= (bodies[body].getRadius() + bodies[j].getRadius()) )
-				{
+				if( distance <= PongServer.radius * 2 )
 					ResolveCollision(body, j);
-					numCollisions++;
-				}
 			}
 		}
 		
 	}
 	
-	private void detectCollisionsWalls( int num )
+	private static void detectCollisionsWalls( int num )
 	{
 		int body;
-		for(int i = 0; i < workerBodies[num].length; i++)
+		
+		for(int i = 0; i < PongServer.workerBodies[num].length; i++)
 		{
-				body = workerBodies[num][i];
-				if(bodies[body].getYPos()*10 + SIZE/2 - topWall <= bodies[body].getRadius()){
-					ResolveCollisionWall(i);
-				}
-				else if(bodies[body].getYPos()*10 + SIZE/2 - botWall + 30 >= bodies[body].getRadius())
-					ResolveCollisionWall(i);
+			body = PongServer.workerBodies[num][i];
+			
+			if(PongServer.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 - topWall <= PongServer.radius)
+				ResolveCollisionWall(i);
+			
+			else if(PongServer.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 - botWall + 30 >= PongServer.radius)
+				ResolveCollisionWall(i);
 		}
 		
 	}
@@ -423,26 +241,26 @@ public class Collision {
 	 * as well as rightPaddle and leftPaddle replaced by front. This isnt a hard fix but
 	 * should be done once the servers are talking
 	 */
-	private void detectCollisionsPaddle( int num ) {
+	private static void detectCollisionsPaddle( int num ) {
 		int body;
 		double temp;
-		for(int i = 0; i < workerBodies[num].length; i++)
+		for(int i = 0; i < PongServer.workerBodies[num].length; i++)
 		{
-			body = workerBodies[num][i];
-			if(bodies[body].getXPos()*10  < leftPaddle - SIZE )
+			body = PongServer.workerBodies[num][i];
+			if(PongServer.bodies[body].getXPos() * 10  < leftPaddle - PongGUI.SIZE )
 			{
-				temp = bodies[body].getYPos() * 10 + SIZE/2 + bodies[body].getRadius()*10;
-				if(temp > leftPaddleTop + 1 &&  temp < leftPaddleBot - 1)
+				temp = PongServer.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 + PongServer.radius * 10;
+				if(temp > paddleTop[0] + 1 &&  temp < paddleBot[0] - 1)
 					ResolveCollisionPaddle(i);
-				else if(temp >= leftPaddleTop - 3 && temp <= leftPaddleTop + 1)
+				else if(temp >= paddleTop[0] - 3 && temp <= paddleTop[0] + 1)
 				{
 					ResolveCollisionPaddle(i);
-					bodies[i].setYVel(-PADDLE_CORNER);
+					PongServer.bodies[i].setYVel(-PADDLE_CORNER);
 				}
-				else if(temp >= leftPaddleBot - 1 && temp <= leftPaddleBot + 3)
+				else if(temp >= paddleBot[0] - 1 && temp <= paddleBot[0] + 3)
 				{
 					ResolveCollisionPaddle(i);
-					bodies[i].setYVel(PADDLE_CORNER);
+					PongServer.bodies[i].setYVel(PADDLE_CORNER);
 				}
 				else
 				{
@@ -450,20 +268,20 @@ public class Collision {
 					// BALL OFF MAP, call game
 				}
 			}
-			if(bodies[body].getXPos()*10  > rightPaddle - 10 )
+			if(PongServer.bodies[body].getXPos() * 10  > rightPaddle - 10 )
 			{
-				temp = bodies[body].getYPos() * 10 + SIZE/2 + bodies[body].getRadius()*10;
-				if(temp > rightPaddleTop + 1  &&  temp < rightPaddleBot - 1)
+				temp = PongServer.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 + PongServer.radius * 10;
+				if(temp > paddleTop[1] + 1  &&  temp < paddleBot[1] - 1)
 					ResolveCollisionPaddle(i);
-				else if(temp >= rightPaddleTop - 3 && temp <= rightPaddleTop + 1)
+				else if(temp >= paddleTop[1] - 3 && temp <= paddleTop[1] + 1)
 				{
 					ResolveCollisionPaddle(i);
-					bodies[i].setYVel(-PADDLE_CORNER);
+					PongServer.bodies[i].setYVel(-PADDLE_CORNER);
 				}
-				else if(temp >= rightPaddleBot - 1 && temp <= rightPaddleBot + 3)
+				else if(temp >= paddleBot[1] - 1 && temp <= paddleBot[1] + 3)
 				{
 					ResolveCollisionPaddle(i);
-					bodies[i].setYVel(PADDLE_CORNER);
+					PongServer.bodies[i].setYVel(PADDLE_CORNER);
 				}
 				else
 				{
@@ -474,17 +292,17 @@ public class Collision {
 		}
 	}
 	
-	private void ResolveCollisionPaddle(int b) {
-		System.out.println("PADDLE: " + bodies[b].getXPos()*10 + " " + bodies[b].getYPos()*10);
-		bodies[b].setXVel((-1)*(bodies[b].getXVel()));
+	private static void ResolveCollisionPaddle(int b) {
+		System.out.println("PADDLE: " + PongServer.bodies[b].getXPos() * 10 + " " + PongServer.bodies[b].getYPos() * 10);
+		PongServer.bodies[b].setXVel((-1)*(PongServer.bodies[b].getXVel()));
 	}
 	
-	private void ResolveCollisionWall(int b1) {
-		System.out.println("WALL: " + bodies[b1].getXPos()*10 + " " + bodies[b1].getYPos()*10);
-		bodies[b1].setYVel(-1*(bodies[b1].getYVel()));
+	private static void ResolveCollisionWall(int b1) {
+		System.out.println("WALL: " + PongServer.bodies[b1].getXPos() * 10 + " " + PongServer.bodies[b1].getYPos() * 10);
+		PongServer.bodies[b1].setYVel(-1 * PongServer.bodies[b1].getYVel());
 	}
 	
-	private void ResolveCollision(int b1, int b2) {
+	private static void ResolveCollision(int b1, int b2) {
 		double distSquared;
 		double v1fx, v1fy, v2fx, v2fy;
 		double v1nfxNumerator, v1txNumerator, v2nfxNumerator, v2txNumerator;
@@ -492,135 +310,53 @@ public class Collision {
 		double diffXPos, diffYPos;
 		
 		// dist = b1.r + b2.r
-		distSquared = (bodies[b1].getRadius() + bodies[b2].getRadius()) * 
-				(bodies[b1].getRadius() + bodies[b2].getRadius());
+		distSquared = Math.pow(PongServer.radius * 2, 2);
 		
 		// x2 - x1
-		diffXPos = bodies[b2].getXPos() - bodies[b1].getXPos();
+		diffXPos = PongServer.bodies[b2].getXPos() - PongServer.bodies[b1].getXPos();
 		// y2 - y1
-		diffYPos = bodies[b2].getYPos() - bodies[b1].getYPos();
+		diffYPos = PongServer.bodies[b2].getYPos() - PongServer.bodies[b1].getYPos();
 		
 		// Find final normal and tangent vectors for Body 1's x
-		v1nfxNumerator = bodies[b2].getXVel() * diffXPos * diffXPos +
-				bodies[b2].getYVel() * diffXPos * diffYPos;
-		v1txNumerator = bodies[b1].getXVel() * diffYPos * diffYPos -
-				bodies[b1].getYVel() * diffXPos * diffYPos;
+		v1nfxNumerator = PongServer.bodies[b2].getXVel() * diffXPos * diffXPos +
+				PongServer.bodies[b2].getYVel() * diffXPos * diffYPos;
+		v1txNumerator = PongServer.bodies[b1].getXVel() * diffYPos * diffYPos -
+				PongServer.bodies[b1].getYVel() * diffXPos * diffYPos;
 		// Find the final total x vector for Body 1
 		v1fx = (v1nfxNumerator + v1txNumerator) / distSquared;
 		
 		// Find final normal and tangent y vectors for Body 1
-		v1nfyNumerator = bodies[b2].getXVel() * diffXPos * diffYPos +
-				bodies[b2].getYVel() * diffYPos * diffYPos;
-		v1tyNumerator = -(bodies[b1].getXVel() * diffYPos * diffXPos) +
-				bodies[b1].getYVel() * diffXPos * diffXPos;
+		v1nfyNumerator = PongServer.bodies[b2].getXVel() * diffXPos * diffYPos +
+				PongServer.bodies[b2].getYVel() * diffYPos * diffYPos;
+		v1tyNumerator = -(PongServer.bodies[b1].getXVel() * diffYPos * diffXPos) +
+				PongServer.bodies[b1].getYVel() * diffXPos * diffXPos;
 		// Find the final total y vector for Body 1
 		v1fy = (v1nfyNumerator + v1tyNumerator) / distSquared;
 		
 		// Find final normal and tangent x vectors for Body 2
-		v2nfxNumerator = bodies[b1].getXVel() * diffXPos * diffXPos +
-				bodies[b1].getYVel() * diffXPos * diffYPos;
-		v2txNumerator = bodies[b2].getXVel() * diffYPos * diffYPos -
-				bodies[b2].getYVel() * diffXPos * diffYPos;
+		v2nfxNumerator = PongServer.bodies[b1].getXVel() * diffXPos * diffXPos +
+				PongServer.bodies[b1].getYVel() * diffXPos * diffYPos;
+		v2txNumerator = PongServer.bodies[b2].getXVel() * diffYPos * diffYPos -
+				PongServer.bodies[b2].getYVel() * diffXPos * diffYPos;
 		// Find the final total x vector for Body 1
 		v2fx = (v2nfxNumerator + v2txNumerator) / distSquared;
 		
 		// Find final normal and tangent y vectors for Body 2
-		v2nfyNumerator = bodies[b1].getXVel() * diffXPos * diffYPos +
-				bodies[b1].getYVel() * diffYPos * diffYPos;
-		v2tyNumerator = -(bodies[b2].getXVel() * diffYPos * diffXPos) +
-				bodies[b2].getYVel() * diffXPos * diffXPos;
+		v2nfyNumerator = PongServer.bodies[b1].getXVel() * diffXPos * diffYPos +
+				PongServer.bodies[b1].getYVel() * diffYPos * diffYPos;
+		v2tyNumerator = -(PongServer.bodies[b2].getXVel() * diffYPos * diffXPos) +
+				PongServer.bodies[b2].getYVel() * diffXPos * diffXPos;
 		// Find the final total y vector for Body 1
 		v2fy = (v2nfyNumerator + v2tyNumerator) / distSquared;
 		
 		// Update the final velocities
-		bodies[b1].setXVel(v1fx);
-		bodies[b1].setYVel(v1fy);
-		bodies[b2].setXVel(v2fx);
-		bodies[b2].setYVel(v2fy);
-	}
-	
-	// All the setters and getters below. Most of these were created for CollisionWorker to work
-
-	public int getNumTimeSteps() {
-		return numTimeSteps;
+		PongServer.bodies[b1].setXVel(v1fx);
+		PongServer.bodies[b1].setYVel(v1fy);
+		PongServer.bodies[b2].setXVel(v2fx);
+		PongServer.bodies[b2].setYVel(v2fy);
 	}
 
-	public void setNumTimeSteps(int numTimeSteps) {
-		this.numTimeSteps = numTimeSteps;
-	}
-
-	public int getNumBodies() {
-		return numBodies;
-	}
-
-	public void setNumBodies(int numBodies) {
-		this.numBodies = numBodies;
-	}
-
-	public double getBodySize() {
-		return bodySize;
-	}
-
-	public void setBodySize(int bodySize) {
-		this.bodySize = bodySize;
-	}
-
-	public int getNumWorkers() {
-		return numWorkers;
-	}
-
-	public void setNumWorkers(int numWorkers) {
-		this.numWorkers = numWorkers;
-	}
-
-	public int[][] getWorkerBodies() {
-		return workerBodies;
-	}
-
-	public void setWorkerBodies(int[][] workerBodies) {
-		this.workerBodies = workerBodies;
-	}
-
-	public boolean isDebug() {
-		return debug;
-	}
-
-	public void setDebug(boolean debug) {
-		this.debug = debug;
-	}
-
-	public boolean isCSV() {
-		return csv;
-	}
-
-	public void setCSV(boolean csv) {
-		this.csv = csv;
-	}
-	
-	public int getNumCollisions() {
-		return numCollisions;
-	}
-
-	public void setNumCollisions(int numCollisions) {
-		this.numCollisions = numCollisions;
-	}
-
-	public Body[] getBodies() {
-		return bodies;
-	}
-
-	public void setBodies(Body[] bodies) {
-		this.bodies = bodies;
-	}
-
-	public int getNumArrived() {
-		return numArrived;
-	}
-
-	public void setNumArrived(int numArrived) {
-		this.numArrived = numArrived;
-	}
-
+	/*
 	public void aquireMutex() {
 		try {
 			mutex.acquire();
@@ -632,7 +368,7 @@ public class Collision {
 	public void releaseMutex() {
 		mutex.release();
 	}
-
+	
 	public void acquireBarrier(int barrierIndex) {
 		try {
 			barrier[barrierIndex].acquire();
@@ -644,18 +380,7 @@ public class Collision {
 	public void releaseAllBarrier(int barrierIndex) {
 		barrier[barrierIndex].release(numWorkers - 1);
 	}
-
-	public double getG() {
-		return G;
-	}
-
-	public double getDT() {
-		return DT;
-	}
-
-	public double getMASS() {
-		return MASS;
-	}
+	*/
 	
 	public static void usage()
 	{
@@ -663,6 +388,6 @@ public class Collision {
 		System.out.println("\tjava Collision w b s\n");
 		System.out.println("\tw - Number of workers, 1 to 16. Ignored by sequential program.");
 		System.out.println("\tb - number of bodies.");
-		System.out.println("\ts - size of each body.");
+		System.out.println("\ts - PongGUI.SIZE of each body.");
 	}
 }

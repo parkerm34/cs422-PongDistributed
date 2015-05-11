@@ -11,76 +11,40 @@ import javax.swing.JPanel;
 
 import controller.PongClient;
 import model.Body;
+import model.Collision;
 
 public class PongGUI extends JFrame {
-
+	protected int ANIMATIONTIME = 100;
+	public final static int SIZE = 750;
+	public final static int NO_KEY = 0;
+	public final static int UP_KEY = 1;
+	public final static int DOWN_KEY = 2;
+	
 	private JPanel drawPanel;
 	private PongClient client;
-	private Body[] bodies;
 	private CircleBody[] circles;
 	private Paddle paddle;
 	public OptionGUI option;
 	private int paddleX;
-	public int paddleTop;
-	public int paddleBot;
-	private int PADDLE_MOVE = 10;
-	
-	protected int ANIMATIONTIME = 100;
-	private int SIZE = 750;
 	private int offset;
+	private int radius;
 	
-	// The gui is generated with a given client. Each client will need a storage
-	// for the balls array. 
-	//
-	// INPUTS: For the inputs of this, every time we want to redraw,
-	//			we are going to need the positions of the balls currently as well as
-	//			the position of the paddle. Currently this is done through getting the
-	//			balls from the bodies array in the client. The paddle is stored in the gui
-	//			and will need its location sent through the socket.
-	//
-	// OUTPUTS: Paddle position when a key is pressed up for down is updated.
-	//				This position needs to be sent every time the display is updated
-	//				so that the server can send to the other client the position of the other paddle.
-	public PongGUI( PongClient client) {
+	public PongGUI(PongClient client) {
 		this.client = client;
 		layoutGUI();
 	}
 	
 	private void layoutGUI() {
-		setTitle("Distributed Pong");
-	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	    setBackground(Color.BLUE);
-	    
-	    if(client.getSide() == 1)
-	    {
-	    	paddleX = 5;
-	    	offset = SIZE;
-	    }
-	    else
-	    {
-	    	paddleX = SIZE-30;
-	    	offset = 0;
-	    }
-	    
-	    drawPanel = new JPanel();
-	    
-	    drawPanel.setLayout(null);
-	    
-	    bodies = client.getBodies();
-	    
-	    double xCoord = 100;
-        double yCoord = 100;
-        
-        this.addKeyListener(new KeyListener() {
+		this.addKeyListener(new KeyListener() {
         	@Override
         	public void keyPressed(KeyEvent arg0) {
         		int keyCode = arg0.getKeyCode();
         		switch(keyCode) {
         			case KeyEvent.VK_UP:
-        				updatePaddle( -PADDLE_MOVE );
+        				client.keyPressed = UP_KEY;
         				break;
         			case KeyEvent.VK_DOWN:
-        				updatePaddle( PADDLE_MOVE );
+        				client.keyPressed = DOWN_KEY;
         				break;
         			default:
         				break;
@@ -90,8 +54,19 @@ public class PongGUI extends JFrame {
 
         	@Override
         	public void keyReleased(KeyEvent arg0) {
-        		// TODO Auto-generated method stub
-        		
+        		int keyCode = arg0.getKeyCode();
+        		switch(keyCode) {
+        			case KeyEvent.VK_UP:
+        				if(client.keyPressed == UP_KEY)
+        					client.keyPressed = NO_KEY;
+        				break;
+        			case KeyEvent.VK_DOWN:
+        				if(client.keyPressed == DOWN_KEY)
+        					client.keyPressed = NO_KEY;
+        				break;
+        			default:
+        				break;
+        		}
         	}
 
         	@Override
@@ -100,27 +75,29 @@ public class PongGUI extends JFrame {
         		
         	}
         });
-        
-        paddle = new Paddle((float)SIZE/6);
-        paddle.setLocation(paddleX, SIZE/2-SIZE/12);
-        paddle.setSize(paddle.getPreferredSize());
-        drawPanel.add(paddle);
-
-        circles = new CircleBody[bodies.length];
-        
-	    for(int i = 0; i < bodies.length; i++)
+		
+		setTitle("Distributed Pong");
+	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	    setBackground(Color.BLUE);
+	    
+	    if(client.getSide() == OptionGUI.LEFT_SIDE)
 	    {
-	    	xCoord = bodies[i].getXPos()*10 + offset;
-	    	yCoord = bodies[i].getYPos()*10 + SIZE/2;
-	    	circles[i] = new CircleBody(bodies[i].getRadius() * 10);
-	        circles[i].setLocation((int)xCoord,(int)yCoord);
-	        circles[i].setSize(circles[i].getPreferredSize());
-	        drawPanel.add(circles[i]);
+	    	paddleX = 5;
+	    	offset = SIZE;
 	    }
-
-        drawPanel.repaint();
-
+	    else
+	    {
+	    	paddleX = SIZE-30;
+	    	offset = 0;
+	    }
+	    paddle = new Paddle((float)SIZE/6);
+        circles = new CircleBody[client.pointPos.length];
+	    
+	    drawPanel = new JPanel();
+	    drawPanel.setLayout(null);
+	    drawPanel.repaint();
         this.add(drawPanel);
+        
 		setMinimumSize(new Dimension(SIZE, SIZE));
 		setVisible(true);
 	}
@@ -140,35 +117,27 @@ public class PongGUI extends JFrame {
         drawPanel.removeAll();
         drawPanel.revalidate();
         
-	    for(int i = 0; i < bodies.length; i++)
+	    for(int i = 0; i < client.pointPos.length; i++)
 	    {
-	    	xCoord = bodies[i].getXPos()*10 + offset;
-	    	yCoord = bodies[i].getYPos()*10 + SIZE/2;
-	    	circles[i] = new CircleBody(bodies[i].getRadius() * 22);
+	    	xCoord = client.pointPos[i].x * 10 + offset;
+	    	yCoord = client.pointPos[i].y * 10 + SIZE / 2;
+	    	circles[i] = new CircleBody(radius * 22);
 	        circles[i].setLocation((int)xCoord,(int)yCoord);
 	        circles[i].setSize(circles[i].getPreferredSize());
 	        drawPanel.add(circles[i]);
 	    }
-	    Point loc = paddle.getLocation();
-	    //System.out.println("PADDLE LOC: " + loc.x + " " + loc.y);
-		paddle.setLocation(loc.x, loc.y);
-		drawPanel.add(paddle);
         drawPanel.repaint();
 	}
 	
-	public void updatePaddle( int y ) {
-		Point loc = paddle.getLocation();
-		if(loc.y + y > -75 && loc.y + y < 675)
-		{
-			paddle.setLocation(loc.x, loc.y + y);
-			drawPanel.add(paddle);
-			drawPanel.repaint();
-			paddleTop = loc.y + y;
-			paddleBot = loc.y + y + SIZE/6;
-		}
+	public void updatePaddle()
+	{
+		paddle.setLocation(paddleX, client.paddleYPos);
+		drawPanel.add(paddle);
+		drawPanel.repaint();
 	}
 	
-	public void updateAnimation( int time ) {
+	public void updateAnimation( int time )
+	{
 		ANIMATIONTIME = time;
 	}
 }

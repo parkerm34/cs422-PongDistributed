@@ -4,95 +4,58 @@ import view.PongGUI;
 import model.Collision;
 
 public class PongController {
-
-	public static PongGUI gui;
-	public static Collision col;
-	public static String[] startArgs;
-	public static int NUM_PROCS = 1;
-	public static PongServer server;
-	public static PongClient leftClient;
-	public static PongClient rightClient;
+	public static int numProcs = 1;
 	public static int numBalls = 1;
 	public static String host;
-	public static String first;
-	public static double size = 1.0f;
+	public static String source;
 	
-	public static void main( String[] args ) {
-		startArgs = args;
-		startCollisionGUI( );
-	}
-	
-	// Takes in the command line arguments, some of these will have to be sent through socket
-	// host is the IP
-	// first is whether it is a client or server. For testing reasons I switched it to take in
-	// 		l(left) or r(ight) for client, but will probably change to just client and leave
-	//		the side picking for the gui
-	// NUM_PROCS is the number of processes for the game worker, it defaults to 1
-	//
-	// This class is also going to need the number of balls to start the game with. I was
-	// 		thinking leaving the default as 1, then go through and either use a command line argument
-	//		or put it in a menu. I can create a quick mockup options menu if you feel like we should do that...
-	public static void startCollisionGUI( ) {
-
-		String[] args = startArgs;
-		
+	public static void main( String[] args )
+	{
 		if( args.length < 2 )
 		{
-			System.out.println("Too few arguments: 2 are required, " + args.length + " were given.");
+			System.out.println("Too few arguments: 1 are required, " + args.length + " were given.");
 			usage();
 			return;
 		}
-		if( args.length >= 3 )
-			if(args[2].compareTo("c") != 0)
-				NUM_PROCS = Integer.parseInt(args[2]);
-
-		first = args[0];
-		host = args[1];
-		
-		init();
-	}
-	
-	public static void init() {
-		if( first.compareTo("s") == 0 || first.compareTo("server") == 0 )
+		switch(args.length)
 		{
-			
-			server = new PongServer();
+			case 4:
+				numProcs = Integer.parseInt(args[3]);
+			case 3:
+				numBalls = Integer.parseInt(args[2]);
+			case 2:
+				host = args[1];
+				source = args[0];
+				break;
+			default:
+				System.out.println("Too many arguments: 6 is the maximum, " + args.length + " were given.");
+				usage();
+				return;
 		}
-		else if( first.compareTo("l") == 0 || first.compareTo("left") == 0 )
-			leftClient = new PongClient(host);
-		else if( first.compareTo("r") == 0 || first.compareTo("right") == 0 )
-			rightClient = new PongClient(host);
+		
+		if( source.equals("s") || source.equals("server") )
+			new PongServer(numBalls, numProcs);
+		
+		else if( source.equals("l") || source.equals("left") )
+			new PongClient(host);
+		
+		else if( source.equals("r") || source.equals("right") )
+			new PongClient(host);
+		
 		else
 		{
 			System.out.println("First argument is wrong, must be s, l, r, server, left, or right");
 			usage();
 			System.exit(1);
 		}
-		if(NUM_PROCS == 1)
-			col = new Collision( numBalls, size );
-		else
-			col = new Collision( NUM_PROCS, numBalls, size );
-
-		
-		
-		if(NUM_PROCS == 1)
-			col.sequentialStart();
-		else
-			col.parallelStart();
-		
-		//GUI TESTING
-/*		col = new Collision( 2, .5);
-		leftClient = new PongClient("10.0.0.1", col);
-		col.sequentialStart(leftClient.gui);*/
-		//gui.updateCircles();
 	}
 	
 	public static void usage() {
 		System.out.println("Distributed Pong Usage\n");
-		System.out.println("java PongController s i [w]\n");
+		System.out.println("java PongController s i [n] [w]\n");
 		System.out.println("s - flag for server or client, options are s (or server), l (or left), r (or right)");
 		System.out.println("i - is an ip address to use as the host in IPv4 Address format (10.0.0.16)");
-		System.out.println("w - is the number of processes to use to calculate collisions and position on the server (optional, default is " + NUM_PROCS + ")");
-		//System.out.println("c - is an optional argument that is used to create a csv output c for on or nothing for off)");
+		System.out.println("n - is the number of balls to start the game with(optional, default is 1)");		
+		System.out.println("w - is the number of processes to use to calculate collisions and position on the server (optional, default is 1)");
 	}
 }

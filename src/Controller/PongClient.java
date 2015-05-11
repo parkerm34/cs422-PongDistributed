@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 
 import model.Body;
+import model.Point;
 import view.OptionGUI;
 import view.PongGUI;
 
@@ -11,12 +12,15 @@ public class PongClient
 {
 	public final static int COM_PORT = 9998;
 	
+	public static int paddleYPos;
+
 	private int side;
 	private ObjectInputStream inStream;
 	private ObjectOutputStream outStream;
 	
 	private PongGUI gui;
-	private Body[] balls;
+	public Point pointPos[];
+	public int keyPressed;
 	
 	// Input: Needs string that is the hosts IP on startup, gotten through command line.
 	//		  Needs input to declare the ball array. I think we should do this on the server
@@ -36,7 +40,7 @@ public class PongClient
 		chooseSide();
 		initSocketConnections(host, COM_PORT);
 		
-		balls = ClientHelper.readPoints();
+		//balls = ClientHelper.readPoints();
 		// confirmConnection();
 		gui = new PongGUI(this);
 		playPong();
@@ -55,7 +59,6 @@ public class PongClient
 
 	private void initSocketConnections(String host, int port)
 	{
-		int serverResponse;
 		Socket socket = null;
 		
 		try {
@@ -70,16 +73,16 @@ public class PongClient
 			System.out.println("Sent ouptut");
 			
 			inStream = new ObjectInputStream(socket.getInputStream());
-			serverResponse = (int) inStream.readObject();
+			/*pointPos = (Point[])inStream.readObject();
 			
-			System.out.println("Read input: " + serverResponse);
+			System.out.println("Read input: " + pointPos);
 			
-			if(serverResponse != PongSubServer.SUCCESS)
+			if(pointPos == null)
 			{
-				System.out.println("ConfirmConnection: Server did not send SUCCESS. Sent " + serverResponse + " instead.");
+				System.out.println("Server did not initialize point positions before sending them!");
 				System.exit(1);
 			}
-			
+			*/
 			System.out.println("SocketInitialization finished!");
 		}
 		catch(Exception e) {
@@ -91,63 +94,44 @@ public class PongClient
 	private void playPong()
 	{
 		ServerMessage inMsg;
-		ClientMessage outMsg = new ClientMessage();
 		int maxWins = 10;
 		int wins = 0;
 		
 		// initialize pongGUI
+		// TODO: Have keyListener in here?
 		
 		while(wins < maxWins)
 		{
 			System.out.println("Within playPong, in while loop");
 			
-			outMsg.setDownKey(getDK());
-			outMsg.setUpKey(getUK());
 			try {
 				// Get new positions from server.
 				inMsg = (ServerMessage)inStream.readObject();
 				
 				if(inMsg.getMatchWon() > 0)
-				{
 					wins++;
-					// TODO: Add in some sort of pause after a won game
-				}
+
 				
 				// Immediately send server whether up or down are pressed
 				//  so it can start calculating next positions.
-				outStream.writeObject(outMsg);
+				outStream.writeObject(keyPressed);
 				outStream.flush();
 				
-				// update pongGUI with inMsg
-				//   -> Use inMsg.getBallPositions(), inMsg.getPaddleYPos(),
-				//        and inMsg.getMatchWon()
+				// TODO: Iterate through ball positions?
+				pointPos = inMsg.getBallPositions();
+				paddleYPos = inMsg.getPaddleYPos();
+				gui.updateCircles();
+				gui.updatePaddle();
 				
 			} catch (ClassNotFoundException | IOException e) {
 				System.err.println(e);
 				e.printStackTrace();
 			}
 		}
+		
+		System.out.println("Game over!");
 	}
 
-	private static boolean getUK()
-	{
-		// looks like you have to use listen to KeyEvent to determine if key pressed
-		// source: https://stackoverflow.com/questions/18037576/how-do-i-check-if-the-user-is-pressing-a-key
-		return false;
-	}
-
-	private static boolean getDK()
-	{
-		// looks like you have to use listen to KeyEvent to determine if key pressed
-		// source: https://stackoverflow.com/questions/18037576/how-do-i-check-if-the-user-is-pressing-a-key
-		return false;
-	}
-	
-	public Body[] getBodies()
-	{
-		return balls;
-	}
-	
 	public int getSide()
 	{
 		return side;

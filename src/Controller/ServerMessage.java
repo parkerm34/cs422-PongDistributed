@@ -1,8 +1,12 @@
 package controller;
 
+import java.io.Serializable;
+
 import model.Point;
 
-public class ServerMessage {
+public class ServerMessage implements Serializable {
+	private static final long serialVersionUID = 5758828872632626958L;
+	
 	private Point ballPositions[];
 	private int paddleYPos;
 	private int matchWon;
