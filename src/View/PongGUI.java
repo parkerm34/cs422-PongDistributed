@@ -90,16 +90,22 @@ public class PongGUI extends JFrame {
 	    	paddleX = SIZE-30;
 	    	offset = 0;
 	    }
-	    paddle = new Paddle((float)SIZE/6);
         circles = new CircleBody[client.numBalls];
 	    
 	    drawPanel = new JPanel();
 	    drawPanel.setLayout(null);
+	    
+	    paddle = new Paddle((float)SIZE/6);
+        paddle.setLocation(paddleX, SIZE/2-SIZE/12);
+        paddle.setSize(paddle.getPreferredSize());
+        drawPanel.add(paddle);
+	    
 	    drawPanel.repaint();
         this.add(drawPanel);
         
 		setMinimumSize(new Dimension(SIZE, SIZE));
 		setVisible(true);
+	    //updateCircles();
 	}
 	
 	public void updateCircles() {
@@ -128,15 +134,18 @@ public class PongGUI extends JFrame {
 	        circles[i].setSize(circles[i].getPreferredSize());
 	        drawPanel.add(circles[i]);
 	    }
+	    //Point loc = paddle.getLocation();
+		//paddle.setLocation(loc.x, loc.y);
+		drawPanel.add(paddle);
         drawPanel.repaint();
         //System.out.println("printed");
 	}
 	
 	public void updatePaddle()
 	{
-		//paddle.setLocation(paddleX, client.paddleYPos);
-		//drawPanel.add(paddle);
-		//drawPanel.repaint();
+		paddle.setLocation(paddleX, SIZE/2-SIZE/12);
+		drawPanel.add(paddle);
+		drawPanel.repaint();
 	}
 	
 	public void updateAnimation( int time )
