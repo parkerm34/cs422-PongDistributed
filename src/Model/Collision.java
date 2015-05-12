@@ -24,14 +24,14 @@ public class Collision {
 	 * This should be simplified into paddleTop and paddleBot if possible
 	 */
 	private int topWall = 0;
-	private int botWall = 732;
+	private int botWall = PongGUI.YSIZE - 18;
 	private int leftPaddle = 10;
-	private int rightPaddle = 720;
+	private int rightPaddle = PongGUI.SIZE - 30;
 
 	private int paddleTop[];
 	private int paddleBot[];
 	
-	private double PADDLE_CORNER = 0.0;
+	private double PADDLE_CORNER = 20.0;
 	public final int PADDLE_MOVE = 1;
 	// private Semaphore mutex;
 	// private Semaphore[] barrier;
@@ -45,10 +45,10 @@ public class Collision {
 		this.server = server;
 		paddleTop = new int[2];
 		paddleBot = new int[2];
-		paddleTop[0] = 313;
-		paddleBot[0] = 438;
-		paddleTop[1] = 313;
-		paddleBot[1] = 438;
+		paddleTop[0] = PongGUI.YSIZE / 2 - PongGUI.YSIZE / 12;
+		paddleBot[0] = PongGUI.YSIZE / 2 + PongGUI.YSIZE / 12;
+		paddleTop[1] = PongGUI.YSIZE / 2 - PongGUI.YSIZE / 12;
+		paddleBot[1] = PongGUI.YSIZE / 2 + PongGUI.YSIZE / 12;
 	}
 	
 	/*
@@ -108,7 +108,7 @@ public class Collision {
 	private void movePaddles() {
 		if(server.keyPressed[0] == PongGUI.UP_KEY)
 		{
-			if(server.paddleYPos[0] > 2)
+			if(server.paddleYPos[0] > (-1)*PongGUI.PADDLE_SIZE/2)
 			{
 				server.paddleYPos[0] -= PADDLE_MOVE;
 				paddleBot[0] -= PADDLE_MOVE;
@@ -118,7 +118,7 @@ public class Collision {
 		}
 		else if(server.keyPressed[0] == PongGUI.DOWN_KEY)
 		{
-			if(server.paddleYPos[0] < 585)
+			if(server.paddleYPos[0] < PongGUI.YSIZE - PongGUI.PADDLE_SIZE/2)
 			{
 				server.paddleYPos[0] += PADDLE_MOVE;
 				paddleBot[0] += PADDLE_MOVE;
@@ -129,7 +129,7 @@ public class Collision {
 		
 		if(server.keyPressed[1] == PongGUI.UP_KEY)
 		{
-			if(server.paddleYPos[1] > 2)
+			if(server.paddleYPos[1] > (-1)*PongGUI.PADDLE_SIZE/2)
 			{
 				server.paddleYPos[1] -= PADDLE_MOVE;
 				paddleBot[1] -= PADDLE_MOVE;
@@ -139,7 +139,7 @@ public class Collision {
 		}
 		else if(server.keyPressed[1] == PongGUI.DOWN_KEY)
 		{
-			if(server.paddleYPos[1] < 585)
+			if(server.paddleYPos[1] < PongGUI.YSIZE - PongGUI.PADDLE_SIZE/2)
 			{
 				server.paddleYPos[1] += PADDLE_MOVE;
 				paddleBot[1] += PADDLE_MOVE;
@@ -235,10 +235,10 @@ public class Collision {
 		{
 			body = server.workerBodies[num][i];
 			
-			if(server.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 - topWall <= server.radius)
+			if(server.bodies[body].getYPos() * 10 + PongGUI.YSIZE / 2 - topWall <= server.radius)
 				ResolveCollisionWall(i);
 			
-			else if(server.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 - botWall + 30 >= server.radius)
+			else if(server.bodies[body].getYPos() * 10 + PongGUI.YSIZE / 2 - botWall + 30 >= server.radius)
 				ResolveCollisionWall(i);
 		}
 		
@@ -256,7 +256,7 @@ public class Collision {
 			body = server.workerBodies[num][i];
 			if(server.bodies[body].getXPos() * 10  < leftPaddle - PongGUI.SIZE )
 			{
-				temp = server.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 + server.radius * 10;
+				temp = server.bodies[body].getYPos() * 10 + PongGUI.YSIZE / 2 + server.radius * 10;
 				if(temp > paddleTop[0] + 1 &&  temp < paddleBot[0] - 1)
 					ResolveCollisionPaddle(i);
 				else if(temp >= paddleTop[0] - 3 && temp <= paddleTop[0] + 1)
@@ -276,7 +276,7 @@ public class Collision {
 			}
 			if(server.bodies[body].getXPos() * 10  > rightPaddle - 10 )
 			{
-				temp = server.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 + server.radius * 10;
+				temp = server.bodies[body].getYPos() * 10 + PongGUI.YSIZE / 2 + server.radius * 10;
 				if(temp > paddleTop[1] + 1  &&  temp < paddleBot[1] - 1)
 					ResolveCollisionPaddle(i);
 				else if(temp >= paddleTop[1] - 3 && temp <= paddleTop[1] + 1)
@@ -299,6 +299,10 @@ public class Collision {
 	
 	private void ResolveCollisionPaddle(int b) {
 		System.out.println("PADDLE: " + server.bodies[b].getXPos() * 10 + " " + server.bodies[b].getYPos() * 10);
+		if(server.bodies[b].getXVel() > 0)
+			server.bodies[b].setXVel(server.bodies[b].getXVel() + 1.0);
+		else
+			server.bodies[b].setXVel(server.bodies[b].getXVel() - 1.0);
 		server.bodies[b].setXVel((-1)*(server.bodies[b].getXVel()));
 	}
 	

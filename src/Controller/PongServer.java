@@ -39,7 +39,7 @@ public class PongServer
 		barrier[2] = new Semaphore(0);
 		
 		paddleYPos = new int[2];
-		paddleYPos[0] = PongGUI.SIZE / 2 - PongGUI.SIZE / 12;
+		paddleYPos[0] = PongGUI.YSIZE / 2 - PongGUI.YSIZE / 12;
 		paddleYPos[1] = paddleYPos[0];
 		
 		keyPressed = new int[2];
@@ -103,7 +103,7 @@ public class PongServer
 		// Parse bodies evenly along middle of screen
 		for(int i = 0; i < numBodies; i++)
 		{
-			div = PongGUI.SIZE / ((double)numBodies + 1);
+			div = PongGUI.YSIZE / ((double)numBodies + 1);
 			//bodies[i].setYPos(div * i);
 			bodies[i].setYPos(0);
 			bodies[i].setXPos(0);

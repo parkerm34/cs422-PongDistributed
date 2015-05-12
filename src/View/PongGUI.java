@@ -15,10 +15,12 @@ import model.Collision;
 
 public class PongGUI extends JFrame {
 	protected int ANIMATIONTIME = 100;
-	public final static int SIZE = 750;
+	public final static int SIZE = 1080;
+	public final static int YSIZE = 720;
 	public final static int NO_KEY = 0;
 	public final static int UP_KEY = 1;
 	public final static int DOWN_KEY = 2;
+	public final static int PADDLE_SIZE = YSIZE/6;
 	
 	private JPanel drawPanel;
 	private PongClient client;
@@ -95,15 +97,15 @@ public class PongGUI extends JFrame {
 	    drawPanel = new JPanel();
 	    drawPanel.setLayout(null);
 	    
-	    paddle = new Paddle((float)SIZE/6);
-        paddle.setLocation(paddleX, SIZE/2-SIZE/12);
+	    paddle = new Paddle((float)YSIZE/6);
+        paddle.setLocation(paddleX, YSIZE/2-YSIZE/12);
         paddle.setSize(paddle.getPreferredSize());
         drawPanel.add(paddle);
 	    
 	    drawPanel.repaint();
         this.add(drawPanel);
         
-		setMinimumSize(new Dimension(SIZE, SIZE));
+		setMinimumSize(new Dimension(SIZE, YSIZE));
 		setVisible(true);
 	    //updateCircles();
 	}
@@ -126,7 +128,7 @@ public class PongGUI extends JFrame {
 	    for(int i = 0; i < client.pointPos.length; i++)
 	    {
 	    	xCoord = client.pointPos[i].x * 10 + offset;
-	    	yCoord = client.pointPos[i].y * 10 + SIZE / 2;
+	    	yCoord = client.pointPos[i].y * 10 + YSIZE / 2;
 	    	//System.out.println((client.pointPos[i].x * 10 + offset) + " " + (yCoord = client.pointPos[i].y * 10 + SIZE / 2));
 	    	
 	    	circles[i] = new CircleBody(1.0 * 10);
