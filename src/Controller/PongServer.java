@@ -111,19 +111,20 @@ public class PongServer
 		for(int i = 0; i < numBodies; i++)
 		{
 			div = PongGUI.SIZE / ((double)numBodies + 1);
-			bodies[i].setYPos(div * i);
+			//bodies[i].setYPos(div * i);
+			bodies[i].setYPos(0);
 			bodies[i].setXPos(0);
 		}
 		
 		// Set random velocities for the balls
-		for(int i = 0; i < numBodies; i++)
-		{
-			xFactor = rand.nextDouble();
-			yFactor = rand.nextDouble();
-			
-			bodies[i].setXVel(xFactor * 5);
-			bodies[i].setYVel(yFactor * 5);
-		}
+//		for(int i = 0; i < numBodies; i++)
+//		{
+//			xFactor = rand.nextDouble();
+//			yFactor = rand.nextDouble();
+//			
+//			bodies[i].setXVel(xFactor * 5);
+//			bodies[i].setYVel(yFactor * 5);
+//		}
 	}
 
 	public void startSubServers()
@@ -173,6 +174,9 @@ public class PongServer
 			
 			col = new Collision(this);
 			col.sequentialStep();
+			//System.out.println("Collision called here");
+//			for(int i = 0; i < numBodies; i++)
+//				System.out.println(bodies[i].getXPos() + " " + bodies[i].getYPos());
 		}
 	}
 }

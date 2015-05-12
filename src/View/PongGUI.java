@@ -106,7 +106,7 @@ public class PongGUI extends JFrame {
 		if(ANIMATIONTIME > 0)
 		{
 			try {
-				Thread.sleep(ANIMATIONTIME);
+				Thread.sleep(ANIMATIONTIME/10);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -115,23 +115,21 @@ public class PongGUI extends JFrame {
         double yCoord = 100;
         
         drawPanel.removeAll();
-        drawPanel.revalidate();
-        
-        
+        drawPanel.revalidate();   
         
 	    for(int i = 0; i < client.pointPos.length; i++)
 	    {
 	    	xCoord = client.pointPos[i].x * 10 + offset;
 	    	yCoord = client.pointPos[i].y * 10 + SIZE / 2;
-	    	System.out.println((client.pointPos[i].x * 10 + offset) + " " + (yCoord = client.pointPos[i].y * 10 + SIZE / 2));
+	    	//System.out.println((client.pointPos[i].x * 10 + offset) + " " + (yCoord = client.pointPos[i].y * 10 + SIZE / 2));
 	    	
-	    	circles[i] = new CircleBody(radius * 22);
+	    	circles[i] = new CircleBody(1.0 * 10);
 	        circles[i].setLocation((int)xCoord,(int)yCoord);
 	        circles[i].setSize(circles[i].getPreferredSize());
 	        drawPanel.add(circles[i]);
 	    }
         drawPanel.repaint();
-        System.out.println("printed");
+        //System.out.println("printed");
 	}
 	
 	public void updatePaddle()

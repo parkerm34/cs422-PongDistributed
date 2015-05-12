@@ -31,7 +31,7 @@ public class Collision {
 	private int paddleTop[];
 	private int paddleBot[];
 	
-	private double PADDLE_CORNER = 20.0;
+	private double PADDLE_CORNER = 0.0;
 	public final int PADDLE_MOVE = 10;
 	// private Semaphore mutex;
 	// private Semaphore[] barrier;
@@ -253,7 +253,10 @@ public class Collision {
 			{
 				temp = server.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 + server.radius * 10;
 				if(temp > paddleTop[0] + 1 &&  temp < paddleBot[0] - 1)
+				{
+					System.out.println("collision left");
 					ResolveCollisionPaddle(i);
+				}
 				else if(temp >= paddleTop[0] - 3 && temp <= paddleTop[0] + 1)
 				{
 					ResolveCollisionPaddle(i);
@@ -266,8 +269,8 @@ public class Collision {
 				}
 				else
 				{
-					System.out.println(server.bodies[body].getXPos() * 10);
-					System.out.println("Round Over, right side wins");
+					//System.out.println(server.bodies[body].getXPos() * 10);
+					//System.out.println("Round Over, right side wins");
 					// BALL OFF MAP, call game
 				}
 			}
@@ -275,7 +278,10 @@ public class Collision {
 			{
 				temp = server.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 + server.radius * 10;
 				if(temp > paddleTop[1] + 1  &&  temp < paddleBot[1] - 1)
+				{
+					System.out.println("collision right");
 					ResolveCollisionPaddle(i);
+				}
 				else if(temp >= paddleTop[1] - 3 && temp <= paddleTop[1] + 1)
 				{
 					ResolveCollisionPaddle(i);
@@ -288,8 +294,8 @@ public class Collision {
 				}
 				else
 				{
-					System.out.println(server.bodies[body].getXPos() * 10);
-					System.out.println("Round Over, left side wins");
+					//System.out.println(server.bodies[body].getXPos() * 10);
+					//System.out.println("Round Over, left side wins");
 					// BALL OFF MAP, call game
 				}
 			}

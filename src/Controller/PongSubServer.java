@@ -19,6 +19,7 @@ public class PongSubServer extends Thread
 	
 	private ObjectInputStream inStream;
 	private ObjectOutputStream outStream;
+	private Point bodyPoints[];
 	
 	public PongServer parent;
 	public Socket socket;
@@ -29,6 +30,9 @@ public class PongSubServer extends Thread
 	{
 		parent = server;
 		this.socket = socket;
+		bodyPoints = new Point[parent.numBodies];
+		for(int i = 0; i < parent.numBodies; i++)
+			bodyPoints[i] = parent.bodies[i].getPos();
 		num = serverNum;
 	}
 	
@@ -51,10 +55,10 @@ public class PongSubServer extends Thread
 	public void sendUpdates()
 	{
 		ServerMessage update = new ServerMessage();
-		Point bodyPoints[] = new Point[parent.numBodies];
 		
-		for(int i = 0; i < parent.numBodies; i++)
+		for(int i = 0; i < parent.numBodies; i++) {
 			bodyPoints[i] = parent.bodies[i].getPos();
+		}
 		
 		update.setBallPositions(bodyPoints);
 		update.setMatchWon(NO_WIN);
@@ -64,11 +68,11 @@ public class PongSubServer extends Thread
 			outStream.writeObject(update);
 			outStream.flush();
 			
-			System.out.println("Sent body positions");
+			//System.out.println("Sent body positions");
 			
-			parent.keyPressed[side] = (int)inStream.readObject();
-		} catch (IOException | ClassNotFoundException e) {
-			System.out.println("press the int button");
+			//parent.keyPressed[side] = (int)inStream.readObject();
+		} catch (IOException e ) {//| ClassNotFoundException e) {
+		//	System.out.println("press the int button");
 //			System.err.println(e);
 	//		e.printStackTrace();
 		}
@@ -76,7 +80,6 @@ public class PongSubServer extends Thread
 
 	public void initSocketConnections()
 	{
-		Point bodyPoints[] = new Point[parent.numBodies];
 		int input = 0;
 		ServerMessage init = new ServerMessage();
 		
@@ -93,8 +96,6 @@ public class PongSubServer extends Thread
 		}
 		
 		// if one input is not left and the other right, then inStream got incorrect value(s); exit(1)
-		if(input == 0)
-			System.out.println(input);
 		
 		if(input != 0 && input != 1)
 		{
@@ -109,18 +110,6 @@ public class PongSubServer extends Thread
 		System.out.println("Subserver " + num + " got init message from: " +
 				(input == OptionGUI.LEFT_SIDE ? "left" : "right") + " side.");
 		
-//		while(parent.ready < 2)
-//		{
-//			System.out.println("waiting");
-//		}
-//		try {
-//			outStream.writeObject("start");
-//			outStream.writeObject("start");
-//		} catch (IOException e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-
 		try {
 			
 			for(int i = 0; i < parent.numBodies; i++)

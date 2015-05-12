@@ -40,7 +40,6 @@ public class PongClient
 		numBalls = balls;
 		chooseSide();
 		initSocketConnections(host, COM_PORT);
-		pointPos = new Point[numBalls];
 		
 		//balls = ClientHelper.readPoints();
 		gui = new PongGUI(this);
@@ -111,7 +110,7 @@ public class PongClient
 //				e.printStackTrace();
 //			}
 //		}
-		System.out.println("here we go!");
+		//System.out.println("here we go!");
 		
 		
 		// initialize pongGUI
@@ -119,13 +118,13 @@ public class PongClient
 		
 		while(wins < maxWins)
 		{
-			System.out.println("Within playPong, in while loop");
+			//System.out.println("Within playPong, in while loop");
 			
 			try {
 				// Get new positions from server.
 				inMsg = (ServerMessage)inStream.readObject();
 				
-				System.out.println("Received input.");
+				//System.out.println("Received input.");
 				if(inMsg.getMatchWon() > 0)
 					wins++;
 
@@ -137,10 +136,10 @@ public class PongClient
 				
 				// TODO: Iterate through ball positions?
 				pointPos = inMsg.getBallPositions();
-				//setBalls();
-				//paddleYPos = inMsg.getPaddleYPos();
+				System.out.println(pointPos[0].x + " " + pointPos[0].y);
+				paddleYPos = inMsg.getPaddleYPos();
 				gui.updateCircles();
-				//gui.updatePaddle();
+				gui.updatePaddle();
 				
 			} catch (ClassNotFoundException | IOException e) {
 				System.err.println(e);
