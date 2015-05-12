@@ -13,8 +13,8 @@ import javax.swing.JPanel;
 
 public class OptionGUI extends JFrame implements ActionListener {
 
-	public final static int LEFT_SIDE = 0;
-	public final static int RIGHT_SIDE = 1;
+	public static int LEFT_SIDE = 0;
+	public static int RIGHT_SIDE = 1;
 	
 	private JPanel buttonPanel;
 	private JPanel optionPanel;

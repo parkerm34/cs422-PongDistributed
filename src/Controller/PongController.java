@@ -28,7 +28,7 @@ public class PongController {
 				source = args[0];
 				break;
 			default:
-				System.out.println("Too many arguments: 6 is the maximum, " + args.length + " were given.");
+				System.out.println("Too many arguments: 4 is the maximum, " + args.length + " were given.");
 				usage();
 				return;
 		}
@@ -37,10 +37,10 @@ public class PongController {
 			new PongServer(numBalls, numProcs);
 		
 		else if( source.equals("l") || source.equals("left") )
-			new PongClient(host);
+			new PongClient(host, numBalls);
 		
 		else if( source.equals("r") || source.equals("right") )
-			new PongClient(host);
+			new PongClient(host, numBalls);
 		
 		else
 		{

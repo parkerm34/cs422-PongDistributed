@@ -13,17 +13,17 @@ import view.OptionGUI;
 public class PongSubServer extends Thread
 {
 	public final static int NO_WIN = 0;
-	public final static int LEFT_WIN = 1;
-	public final static int RIGHT_WIN = 2;
-	public final static int SUCCESS = 0;
+	public final int LEFT_WIN = 1;
+	public final int RIGHT_WIN = 2;
+	public final int SUCCESS = 0;
 	
-	private static ObjectInputStream inStream;
-	private static ObjectOutputStream outStream;
+	private ObjectInputStream inStream;
+	private ObjectOutputStream outStream;
 	
-	PongServer parent;
-	Socket socket;
-	int num;
-	int side;
+	public PongServer parent;
+	public Socket socket;
+	public int num;
+	public int side;
 	
 	public PongSubServer(PongServer server, Socket socket, int serverNum)
 	{
@@ -50,8 +50,8 @@ public class PongSubServer extends Thread
 
 	public void sendUpdates()
 	{
-		ServerMessage update = null;
-		Point bodyPoints[] = null;
+		ServerMessage update = new ServerMessage();
+		Point bodyPoints[] = new Point[parent.numBodies];
 		
 		for(int i = 0; i < parent.numBodies; i++)
 			bodyPoints[i] = parent.bodies[i].getPos();
@@ -61,26 +61,31 @@ public class PongSubServer extends Thread
 		update.setPaddleYPos(parent.paddleYPos[side]);
 		
 		try {
-			outStream.writeObject(bodyPoints);
+			outStream.writeObject(update);
 			outStream.flush();
 			
 			System.out.println("Sent body positions");
 			
 			parent.keyPressed[side] = (int)inStream.readObject();
 		} catch (IOException | ClassNotFoundException e) {
-			System.err.println(e);
-			e.printStackTrace();
+			System.out.println("press the int button");
+//			System.err.println(e);
+	//		e.printStackTrace();
 		}
 	}
 
 	public void initSocketConnections()
 	{
-		Point bodyPoints[] = null;
+		Point bodyPoints[] = new Point[parent.numBodies];
 		int input = 0;
+		ServerMessage init = new ServerMessage();
 		
 		try {
+			outStream = new ObjectOutputStream(socket.getOutputStream());
+
 			inStream = new ObjectInputStream(socket.getInputStream());
 			input = (int) inStream.readObject();
+			//input = inStream.readInt();
 			
 		} catch (IOException | ClassNotFoundException e) {
 			System.err.println(e);
@@ -88,7 +93,10 @@ public class PongSubServer extends Thread
 		}
 		
 		// if one input is not left and the other right, then inStream got incorrect value(s); exit(1)
-		if(input != OptionGUI.LEFT_SIDE || input != OptionGUI.RIGHT_SIDE)
+		if(input == 0)
+			System.out.println(input);
+		
+		if(input != 0 && input != 1)
 		{
 			System.out.println("SubServer: initSocketConnections did not get expected inStream messages from client");
 			System.out.println("Input message expected: " + OptionGUI.LEFT_SIDE + " (left) OR " + OptionGUI.RIGHT_SIDE + " (right)");
@@ -100,14 +108,29 @@ public class PongSubServer extends Thread
 		
 		System.out.println("Subserver " + num + " got init message from: " +
 				(input == OptionGUI.LEFT_SIDE ? "left" : "right") + " side.");
+		
+//		while(parent.ready < 2)
+//		{
+//			System.out.println("waiting");
+//		}
+//		try {
+//			outStream.writeObject("start");
+//			outStream.writeObject("start");
+//		} catch (IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
 
 		try {
-			outStream = new ObjectOutputStream(socket.getOutputStream());
 			
 			for(int i = 0; i < parent.numBodies; i++)
+			{
+				System.out.println(parent.bodies[i].getPos().x);
 				bodyPoints[i] = parent.bodies[i].getPos();
+			}
+			init.setBallPositions(bodyPoints);
 			
-			outStream.writeObject(bodyPoints);
+			outStream.writeObject(init);
 			outStream.flush();
 			
 		} catch (IOException e) {

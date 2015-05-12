@@ -12,12 +12,13 @@ public class PongClient
 {
 	public final static int COM_PORT = 9998;
 	
-	public static int paddleYPos;
+	public int paddleYPos;
 
 	private int side;
 	private ObjectInputStream inStream;
 	private ObjectOutputStream outStream;
 	
+	public int numBalls;
 	private PongGUI gui;
 	public Point pointPos[];
 	public int keyPressed;
@@ -34,14 +35,14 @@ public class PongClient
 	//				of the paddle. The only problem I see is that there might be a little bit of lag time
 	//				but if it comes down to it we should be able to make a quick adjustment for the location
 	//				to be calculated on the server then sent out or something like that.... let me know
-	public PongClient( String host )
+	public PongClient( String host, int balls )
 	{
-		//gui = new PongGUI(this);
+		numBalls = balls;
 		chooseSide();
 		initSocketConnections(host, COM_PORT);
+		pointPos = new Point[numBalls];
 		
 		//balls = ClientHelper.readPoints();
-		// confirmConnection();
 		gui = new PongGUI(this);
 		playPong();
 	}
@@ -96,6 +97,22 @@ public class PongClient
 		ServerMessage inMsg;
 		int maxWins = 10;
 		int wins = 0;
+//		String starter = "no";
+//		
+//		while(starter.compareTo("start") != 0)
+//		{
+//			System.out.println("waiting");
+//			try {
+//				starter = (String)inStream.readObject();
+//				System.out.println("here we go1!");
+//
+//			} catch (ClassNotFoundException | IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
+		System.out.println("here we go!");
+		
 		
 		// initialize pongGUI
 		// TODO: Have keyListener in here?
@@ -108,20 +125,22 @@ public class PongClient
 				// Get new positions from server.
 				inMsg = (ServerMessage)inStream.readObject();
 				
+				System.out.println("Received input.");
 				if(inMsg.getMatchWon() > 0)
 					wins++;
 
 				
 				// Immediately send server whether up or down are pressed
 				//  so it can start calculating next positions.
-				outStream.writeObject(keyPressed);
-				outStream.flush();
+				//outStream.writeObject(keyPressed);
+				//outStream.flush();
 				
 				// TODO: Iterate through ball positions?
 				pointPos = inMsg.getBallPositions();
-				paddleYPos = inMsg.getPaddleYPos();
+				//setBalls();
+				//paddleYPos = inMsg.getPaddleYPos();
 				gui.updateCircles();
-				gui.updatePaddle();
+				//gui.updatePaddle();
 				
 			} catch (ClassNotFoundException | IOException e) {
 				System.err.println(e);

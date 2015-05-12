@@ -91,7 +91,7 @@ public class PongGUI extends JFrame {
 	    	offset = 0;
 	    }
 	    paddle = new Paddle((float)SIZE/6);
-        circles = new CircleBody[client.pointPos.length];
+        circles = new CircleBody[client.numBalls];
 	    
 	    drawPanel = new JPanel();
 	    drawPanel.setLayout(null);
@@ -106,7 +106,7 @@ public class PongGUI extends JFrame {
 		if(ANIMATIONTIME > 0)
 		{
 			try {
-				Thread.sleep(ANIMATIONTIME/10);
+				Thread.sleep(ANIMATIONTIME);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -117,23 +117,28 @@ public class PongGUI extends JFrame {
         drawPanel.removeAll();
         drawPanel.revalidate();
         
+        
+        
 	    for(int i = 0; i < client.pointPos.length; i++)
 	    {
 	    	xCoord = client.pointPos[i].x * 10 + offset;
 	    	yCoord = client.pointPos[i].y * 10 + SIZE / 2;
+	    	System.out.println((client.pointPos[i].x * 10 + offset) + " " + (yCoord = client.pointPos[i].y * 10 + SIZE / 2));
+	    	
 	    	circles[i] = new CircleBody(radius * 22);
 	        circles[i].setLocation((int)xCoord,(int)yCoord);
 	        circles[i].setSize(circles[i].getPreferredSize());
 	        drawPanel.add(circles[i]);
 	    }
         drawPanel.repaint();
+        System.out.println("printed");
 	}
 	
 	public void updatePaddle()
 	{
-		paddle.setLocation(paddleX, client.paddleYPos);
-		drawPanel.add(paddle);
-		drawPanel.repaint();
+		//paddle.setLocation(paddleX, client.paddleYPos);
+		//drawPanel.add(paddle);
+		//drawPanel.repaint();
 	}
 	
 	public void updateAnimation( int time )

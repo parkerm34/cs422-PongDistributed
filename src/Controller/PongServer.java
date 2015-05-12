@@ -13,14 +13,16 @@ import model.Point;
 
 public class PongServer
 {
-	public static Body[] bodies;
-	public static int workerBodies[][];
-	public static int numBodies;
-	public static float radius = 1.0f;
-	public static boolean noWinner = true;
-	public static int paddleYPos[];
-	public static int keyPressed[];
+	public Body[] bodies;
+	public int workerBodies[][];
+	public int numBodies;
+	public float radius = 1.0f;
+	public boolean noWinner = true;
+	public int paddleYPos[];
+	public int keyPressed[];
 	int numWorkers;
+	private Collision col;
+	public int ready = 0;
 	
 	PongSubServer subServer1 = null;
 	PongSubServer subServer2 = null;
@@ -30,6 +32,11 @@ public class PongServer
 	{
 		this.numWorkers = numWorkers;
 		this.numBodies = numBodies;
+		
+		workerBodies = new int[numWorkers][];
+		
+		parseBodies();
+		initBodies();
 		
 		barrier = new Semaphore[3];
 		barrier[0] = new Semaphore(0);
@@ -105,6 +112,7 @@ public class PongServer
 		{
 			div = PongGUI.SIZE / ((double)numBodies + 1);
 			bodies[i].setYPos(div * i);
+			bodies[i].setXPos(0);
 		}
 		
 		// Set random velocities for the balls
@@ -132,17 +140,20 @@ public class PongServer
 			socket = listen.accept();
 			subServer1 = new PongSubServer(this, socket, 0);
 			subServer1.start();
+			ready++;
 			
 			System.out.println("Server: Waiting for 2nd client to accept connection to port");
 			socket = listen.accept();
 			subServer2 = new PongSubServer(this, socket, 1);
 			subServer2.start();
+			ready++;
 			
 		}  catch(IOException e) {
 			System.err.println(e);
 			e.printStackTrace();
 		}
-		System.out.println("Server: Both clients accepted connection to port. Running subserver threads");	
+		System.out.println("Server: Both clients accepted connection to port. Running subserver threads");
+		System.out.println(ready);
 	}
 	
 	private void playPong() {
@@ -160,7 +171,8 @@ public class PongServer
 				e.printStackTrace();
 			}
 			
-			Collision.sequentialStep();
+			col = new Collision(this);
+			col.sequentialStep();
 		}
 	}
 }

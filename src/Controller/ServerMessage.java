@@ -5,7 +5,7 @@ import java.io.Serializable;
 import model.Point;
 
 public class ServerMessage implements Serializable {
-	private static final long serialVersionUID = 5758828872632626958L;
+	private final long serialVersionUID = 5758828872632626958L;
 	
 	private Point ballPositions[];
 	private int paddleYPos;
