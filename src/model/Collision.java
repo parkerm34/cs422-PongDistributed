@@ -284,72 +284,51 @@ public class Collision {
 		for(int i = 0; i < server.workerBodies[num].length; i++)
 		{
 			body = server.workerBodies[num][i];
+			
+			//Check if in left paddle area
 			if(server.bodies[body].getXPos() * 10  < leftPaddle - PongGUI.SIZE )
 			{
 				temp = server.bodies[body].getYPos() * 10 + PongGUI.YSIZE / 2 + server.radius * 10;
-				if(temp > paddleTop[0] + 1 &&  temp < paddleBot[0] - 1)
+				if(!server.bodies[body].getPaddleCollide())
 				{
-					if(!server.bodies[body].getPaddleCollide())
-					{
-						server.bodies[body].setPaddleCollide(true);
-						ResolveCollisionPaddle(body);
-					}
-				}
-				else if(temp >= paddleTop[0] - 3 && temp <= paddleTop[0] + 1)
-				{
-					if(!server.bodies[body].getPaddleCollide())
+					if(temp >= paddleTop[0] - 3 && temp <= paddleTop[0] + 1)
 					{
 						server.bodies[body].setPaddleCollide(true);
 						ResolveCollisionPaddle(body);
 						server.bodies[body].setYVel(-PADDLE_CORNER);
 					}
-				}
-				else if(temp >= paddleBot[0] - 1 && temp <= paddleBot[0] + 3)
-				{
-					if(!server.bodies[body].getPaddleCollide())
+					
+					else if(temp >= paddleBot[0] - 1 && temp <= paddleBot[0] + 3)
 					{
 						server.bodies[body].setPaddleCollide(true);
 						ResolveCollisionPaddle(body);
 						server.bodies[body].setYVel(PADDLE_CORNER);
 					}
-				}
-				else
-				{
-					cont = 1;
+					else if(server.bodies[body].getXPos() * 10  < leftPaddle - PongGUI.SIZE - 40)
+						cont = 1;
 				}
 			}
+			//Check if in right paddle area
 			else if(server.bodies[body].getXPos() * 10  > rightPaddle - 10 )
 			{
 				temp = server.bodies[body].getYPos() * 10 + PongGUI.YSIZE / 2 + server.radius * 10;
-				if(temp > paddleTop[1] + 1  &&  temp < paddleBot[1] - 1)
+				if(!server.bodies[body].getPaddleCollide())
 				{
-					if(!server.bodies[body].getPaddleCollide())
-					{
-						server.bodies[body].setPaddleCollide(true);
-						ResolveCollisionPaddle(body);
-					}
-				}
-				else if(temp >= paddleTop[1] - 3 && temp <= paddleTop[1] + 1)
-				{
-					if(!server.bodies[body].getPaddleCollide())
+					if(temp >= paddleTop[1] - 3 && temp <= paddleTop[1] + 1)
 					{
 						server.bodies[body].setPaddleCollide(true);
 						ResolveCollisionPaddle(body);
 						server.bodies[body].setYVel(-PADDLE_CORNER);
 					}
-				}
-				else if(temp >= paddleBot[1] - 1 && temp <= paddleBot[1] + 3)
-				{
-					if(!server.bodies[body].getPaddleCollide())
+					
+					else if(temp >= paddleBot[1] - 1 && temp <= paddleBot[1] + 3)
 					{
 						server.bodies[body].setPaddleCollide(true);
 						ResolveCollisionPaddle(body);
 						server.bodies[body].setYVel(PADDLE_CORNER);
 					}
-				}
-				else
-				{
-					cont = 2;
+					else if(server.bodies[body].getXPos() * 10  > rightPaddle + 30)
+						cont = 2;
 				}
 			}
 			else
