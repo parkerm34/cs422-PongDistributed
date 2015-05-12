@@ -143,7 +143,7 @@ public class PongGUI extends JFrame {
 	
 	public void updatePaddle()
 	{
-		paddle.setLocation(paddleX, SIZE/2-SIZE/12);
+		paddle.setLocation(paddleX, client.paddleYPos);
 		drawPanel.add(paddle);
 		drawPanel.repaint();
 	}

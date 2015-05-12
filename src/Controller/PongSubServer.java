@@ -9,6 +9,7 @@ import model.Body;
 import model.Point;
 
 import view.OptionGUI;
+import view.PongGUI;
 
 public class PongSubServer extends Thread
 {
@@ -31,8 +32,6 @@ public class PongSubServer extends Thread
 		parent = server;
 		this.socket = socket;
 		bodyPoints = new Point[parent.numBodies];
-		for(int i = 0; i < parent.numBodies; i++)
-			bodyPoints[i] = parent.bodies[i].getPos();
 		num = serverNum;
 	}
 	
@@ -48,8 +47,21 @@ public class PongSubServer extends Thread
 				e.printStackTrace();
 			}
 			sendUpdates();
+			receiveKeyPress();
 			parent.barrier[2].release();
 		}
+	}
+
+	private void receiveKeyPress() {
+		int keyPress = PongGUI.NO_KEY;
+		
+		try {
+			keyPress = (int)inStream.readObject();
+		} catch (ClassNotFoundException | IOException e) {
+			System.err.println(e);
+			e.printStackTrace();
+		}
+		parent.keyPressed[side] = keyPress;
 	}
 
 	public void sendUpdates()
@@ -82,14 +94,12 @@ public class PongSubServer extends Thread
 	public void initSocketConnections()
 	{
 		int input = 0;
-		ServerMessage init = new ServerMessage();
 		
 		try {
 			outStream = new ObjectOutputStream(socket.getOutputStream());
 
 			inStream = new ObjectInputStream(socket.getInputStream());
 			input = (int) inStream.readObject();
-			//input = inStream.readInt();
 			
 		} catch (IOException | ClassNotFoundException e) {
 			System.err.println(e);
@@ -110,25 +120,7 @@ public class PongSubServer extends Thread
 		
 		System.out.println("Subserver " + num + " got init message from: " +
 				(input == OptionGUI.LEFT_SIDE ? "left" : "right") + " side.");
-		
-		try {
-			
-			for(int i = 0; i < parent.numBodies; i++)
-			{
-				System.out.println(parent.bodies[i].getPos().x);
-				bodyPoints[i] = parent.bodies[i].getPos();
-			}
-			init.setBallPositions(bodyPoints);
-			
-			outStream.writeObject(init);
-			outStream.flush();
-			
-		} catch (IOException e) {
-			System.err.println(e);
-			e.printStackTrace();
-		}
-		
-		
+
 		System.out.println("Subserver " + num + " finished receiving input and sending output!");
 	}
 }

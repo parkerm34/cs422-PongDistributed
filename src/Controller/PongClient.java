@@ -73,17 +73,6 @@ public class PongClient
 			System.out.println("Sent ouptut");
 			
 			inStream = new ObjectInputStream(socket.getInputStream());
-			/*pointPos = (Point[])inStream.readObject();
-			
-			System.out.println("Read input: " + pointPos);
-			
-			if(pointPos == null)
-			{
-				System.out.println("Server did not initialize point positions before sending them!");
-				System.exit(1);
-			}
-			*/
-			System.out.println("SocketInitialization finished!");
 		}
 		catch(Exception e) {
 			System.err.println(e);
@@ -131,8 +120,9 @@ public class PongClient
 				
 				// Immediately send server whether up or down are pressed
 				//  so it can start calculating next positions.
-				//outStream.writeObject(keyPressed);
-				//outStream.flush();
+				outStream.reset();
+				outStream.writeObject(keyPressed);
+				outStream.flush();
 				
 				// TODO: Iterate through ball positions?
 				pointPos = inMsg.getBallPositions();

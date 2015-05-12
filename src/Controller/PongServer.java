@@ -33,11 +33,6 @@ public class PongServer
 		this.numWorkers = numWorkers;
 		this.numBodies = numBodies;
 		
-		workerBodies = new int[numWorkers][];
-		
-		parseBodies();
-		initBodies();
-		
 		barrier = new Semaphore[3];
 		barrier[0] = new Semaphore(0);
 		barrier[1] = new Semaphore(0);
@@ -50,8 +45,6 @@ public class PongServer
 		keyPressed = new int[2];
 		keyPressed[0] = PongGUI.NO_KEY;
 		keyPressed[1] = PongGUI.NO_KEY;
-		
-		initBodies();
 		
 		if(numWorkers > 1)
 		{
@@ -117,14 +110,14 @@ public class PongServer
 		}
 		
 		// Set random velocities for the balls
-//		for(int i = 0; i < numBodies; i++)
-//		{
-//			xFactor = rand.nextDouble();
-//			yFactor = rand.nextDouble();
-//			
-//			bodies[i].setXVel(xFactor * 5);
-//			bodies[i].setYVel(yFactor * 5);
-//		}
+		for(int i = 0; i < numBodies; i++)
+		{
+			xFactor = rand.nextDouble();
+			yFactor = rand.nextDouble();
+			
+			bodies[i].setXVel(xFactor * 10);
+			bodies[i].setYVel(yFactor * 10);
+		}
 	}
 
 	public void startSubServers()
@@ -159,10 +152,13 @@ public class PongServer
 	
 	private void playPong() {
 		System.out.println("in playPong");
-		int contin = 0;
+		int contin;
+		col = new Collision(this);
 		
 		while(true)
 		{
+			initBodies();
+			contin = 0;
 			while(contin == 0)
 			{
 				barrier[0].release();
@@ -174,8 +170,8 @@ public class PongServer
 					System.err.println(e);
 					e.printStackTrace();
 				}
+				// System.out.println("Left pressed: " + keyPressed[0] + ", right pressed: " + keyPressed[1]);
 				
-				col = new Collision(this);
 				col.sequentialStep();
 				contin = col.getCont();
 			}
@@ -189,21 +185,23 @@ public class PongServer
 			if(contin == 1)
 			{
 				//Left side win
+				col.setCont(0);
 				System.out.println("Left side won round, continuing in 3");
 			}
 			else if(contin == 2)
 			{
 				//Right side win
+				col.setCont(0);
 				System.out.println("Right side won round, continuing in 3");
 			}
-			try {
-				Thread.sleep(5000);
+			/*
+			try { 
+				Thread.sleep(3000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			*/
 			System.out.println("ROUND START");
-			initBodies();
-			contin = 0;
 		}
 	}
 }

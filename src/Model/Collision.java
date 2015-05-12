@@ -5,7 +5,7 @@ import view.PongGUI;
 
 
 public class Collision {
-	private final double DT = 0.01f;
+	private final double DT = 0.01;
 	// private static int[][] PongServer.workerBodies;
 	
 	/* These will need to be passed in initially, after the first time it is good
@@ -24,7 +24,7 @@ public class Collision {
 	 * This should be simplified into paddleTop and paddleBot if possible
 	 */
 	private int topWall = 0;
-	private int botWall = 750;
+	private int botWall = 732;
 	private int leftPaddle = 10;
 	private int rightPaddle = 720;
 
@@ -32,7 +32,7 @@ public class Collision {
 	private int paddleBot[];
 	
 	private double PADDLE_CORNER = 0.0;
-	public final int PADDLE_MOVE = 10;
+	public final int PADDLE_MOVE = 1;
 	// private Semaphore mutex;
 	// private Semaphore[] barrier;
 	
@@ -108,39 +108,43 @@ public class Collision {
 	private void movePaddles() {
 		if(server.keyPressed[0] == PongGUI.UP_KEY)
 		{
-			if(server.paddleYPos[0] > -75)
+			if(server.paddleYPos[0] > 2)
 			{
 				server.paddleYPos[0] -= PADDLE_MOVE;
 				paddleBot[0] -= PADDLE_MOVE;
 				paddleTop[0] -= PADDLE_MOVE;
+				System.out.println("Left side, paddle moved up to: " + server.paddleYPos[0]);
 			}
 		}
 		else if(server.keyPressed[0] == PongGUI.DOWN_KEY)
 		{
-			if(server.paddleYPos[0] < 675)
+			if(server.paddleYPos[0] < 585)
 			{
 				server.paddleYPos[0] += PADDLE_MOVE;
 				paddleBot[0] += PADDLE_MOVE;
 				paddleTop[0] += PADDLE_MOVE;
+				System.out.println("Left side, paddle moved down to: " + server.paddleYPos[0]);
 			}
 		}
 		
 		if(server.keyPressed[1] == PongGUI.UP_KEY)
 		{
-			if(server.paddleYPos[1] > -75)
+			if(server.paddleYPos[1] > 2)
 			{
 				server.paddleYPos[1] -= PADDLE_MOVE;
 				paddleBot[1] -= PADDLE_MOVE;
 				paddleTop[1] -= PADDLE_MOVE;
+				System.out.println("Right side, paddle moved up to: " + server.paddleYPos[1]);
 			}
 		}
 		else if(server.keyPressed[1] == PongGUI.DOWN_KEY)
 		{
-			if(server.paddleYPos[1] < 675)
+			if(server.paddleYPos[1] < 585)
 			{
 				server.paddleYPos[1] += PADDLE_MOVE;
 				paddleBot[1] += PADDLE_MOVE;
 				paddleTop[1] += PADDLE_MOVE;
+				System.out.println("Right side, paddle moved down to: " + server.paddleYPos[1]);
 			}
 		}
 	}
