@@ -85,35 +85,13 @@ public class PongClient
 		ServerMessage inMsg;
 		int maxWins = 10;
 		int wins = 0;
-//		String starter = "no";
-//		
-//		while(starter.compareTo("start") != 0)
-//		{
-//			System.out.println("waiting");
-//			try {
-//				starter = (String)inStream.readObject();
-//				System.out.println("here we go1!");
-//
-//			} catch (ClassNotFoundException | IOException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
-		//System.out.println("here we go!");
-		
-		
-		// initialize pongGUI
-		// TODO: Have keyListener in here?
 		
 		while(wins < maxWins)
 		{
-			//System.out.println("Within playPong, in while loop");
-			
 			try {
 				// Get new positions from server.
 				inMsg = (ServerMessage)inStream.readObject();
 				
-				//System.out.println("Received input.");
 				if(inMsg.getMatchWon() > 0)
 					wins++;
 
@@ -124,9 +102,7 @@ public class PongClient
 				outStream.writeObject(keyPressed);
 				outStream.flush();
 				
-				// TODO: Iterate through ball positions?
 				pointPos = inMsg.getBallPositions();
-//				System.out.println(pointPos[0].x + " " + pointPos[0].y);
 				paddleYPos = inMsg.getPaddleYPos();
 				gui.updateCircles();
 				gui.updatePaddle();

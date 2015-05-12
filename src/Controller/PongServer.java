@@ -9,18 +9,17 @@ import view.PongGUI;
 
 import model.Body;
 import model.Collision;
-import model.Point;
 
 public class PongServer
 {
 	public Body[] bodies;
 	public int workerBodies[][];
 	public int numBodies;
-	public float radius = 1.0f;
+	public static double radius = 0.5;
 	public boolean noWinner = true;
 	public int paddleYPos[];
 	public int keyPressed[];
-	int numWorkers;
+	public int numWorkers;
 	private Collision col;
 	public int ready = 0;
 	
@@ -93,7 +92,10 @@ public class PongServer
 	private void initBodies()
 	{
 		double div;
-		double xFactor, yFactor;
+		double xFactor, yFactor, negFactor;
+		double xVel;
+		int currY = -40;
+		boolean initCollide[];
 		Random rand = new Random();;
 		// Initialize bodies
 		bodies = new Body[numBodies];
@@ -101,12 +103,13 @@ public class PongServer
 			bodies[i] = new Body();
 		
 		// Parse bodies evenly along middle of screen
+		// div = PongGUI.YSIZE / ((double)numBodies + 1);
 		for(int i = 0; i < numBodies; i++)
 		{
-			div = PongGUI.YSIZE / ((double)numBodies + 1);
 			//bodies[i].setYPos(div * i);
-			bodies[i].setYPos(0);
+			bodies[i].setYPos(currY);
 			bodies[i].setXPos(0);
+			currY += 5;
 		}
 		
 		// Set random velocities for the balls
@@ -114,9 +117,29 @@ public class PongServer
 		{
 			xFactor = rand.nextDouble();
 			yFactor = rand.nextDouble();
+			negFactor = rand.nextDouble();
 			
-			bodies[i].setXVel(xFactor * 10);
-			bodies[i].setYVel(yFactor * 10);
+			xVel = 5 + xFactor * 2;
+			if(negFactor < 0.5)
+				xVel *= -1;
+			bodies[i].setXVel(xVel);
+			
+			if(yFactor < 0.5)
+				bodies[i].setYVel(5);
+			else
+				bodies[i].setYVel(-5);
+		}
+		
+		// setup collide boolean array (mark which balls it's collided with currently)
+		initCollide = new boolean[numBodies];
+		for(int i = 0; i < numBodies; i++)
+			initCollide[i] = false;
+		
+		for(int i = 0; i < numBodies; i++)
+		{
+			bodies[i].setBallCollides(initCollide);
+			bodies[i].setWallCollide(false);
+			bodies[i].setPaddleCollide(false);
 		}
 	}
 
@@ -153,7 +176,7 @@ public class PongServer
 	private void playPong() {
 		System.out.println("in playPong");
 		int contin;
-		col = new Collision(this);
+		col = new Collision(this, numWorkers);
 		
 		while(true)
 		{
@@ -170,9 +193,12 @@ public class PongServer
 					System.err.println(e);
 					e.printStackTrace();
 				}
-				// System.out.println("Left pressed: " + keyPressed[0] + ", right pressed: " + keyPressed[1]);
 				
-				col.sequentialStep();
+				if(numWorkers == 1)
+					col.sequentialStep();
+				else
+					col.parallelStep();
+				
 				contin = col.getCont();
 			}
 			

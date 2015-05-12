@@ -13,47 +13,15 @@ public class CollisionWorker extends Thread {
 	
 	public void run()
 	{
-		/*
-		for(int i = 0; i < parent.getNumTimeSteps(); i++)
-		{
-			if(parent.isDebug())
-			{
-				System.out.println("Before TR " + i + ": Number of collisions: " + parent.getNumCollisions());
-				int body;
-				for(int j = 0; j < parent.getWorkerBodies()[id].length; j++)
-				{
-					body = parent.getWorkerBodies()[id][j];
-					System.out.println("Body: " + body);
-					System.out.println(" - Before move: xPos: " + parent.getBodies()[body].getXPos() + " yPos: " + parent.getBodies()[body].getYPos());
-					System.out.println(" - Before move: xVel: " + parent.getBodies()[body].getXVel() + " yVel: " + parent.getBodies()[body].getYVel());
-				}
-			}
-			parent.moveBodies( id );
-			barrier(0);
-			
-			parent.detectCollisions( id );
-			barrier(1);
-			
-			
-			if(parent.isDebug())
-			{
-				int body;
-				for(int j = 0; j < parent.getWorkerBodies()[id].length; j++)
-				{
-					body = parent.getWorkerBodies()[id][j];
-					System.out.println("Body: " + body);
-					System.out.println(" - After move: xPos: " + parent.getBodies()[body].getXPos() + " yPos: " + parent.getBodies()[body].getYPos());
-					System.out.println(" - After move: xVel: " + parent.getBodies()[body].getXVel() + " yVel: " + parent.getBodies()[body].getYVel());
-				}
-				System.out.println();
-			}
-		}
-		*/
+		parent.moveBodies( id );
+		barrier(0);
+		
+		parent.detectCollisions( id );
+		barrier(1);
 	}
 	
 	private void barrier(int barrierIndex) {
 		// All processes before the last wait
-		/*
 		parent.aquireMutex();
 		if(parent.getNumArrived() < parent.getNumWorkers())
 		{
@@ -65,8 +33,9 @@ public class CollisionWorker extends Thread {
 		{
 			parent.setNumArrived(1);
 			parent.releaseAllBarrier(barrierIndex);
+			if(barrierIndex == 0)
+				parent.movePaddles();
 			parent.releaseMutex();
 		}
-		*/
 	}
 }

@@ -1,4 +1,6 @@
 package model;
+import java.util.concurrent.Semaphore;
+
 import controller.PongServer;
 
 import view.PongGUI;
@@ -33,40 +35,46 @@ public class Collision {
 	
 	private double PADDLE_CORNER = 20.0;
 	public final int PADDLE_MOVE = 1;
-	// private Semaphore mutex;
-	// private Semaphore[] barrier;
+	private Semaphore mutex;
+	private Semaphore[] barrier;
 	
 	public boolean debug = false;
 	private PongServer server;
 	private int cont = 0;
+	private int numArrived = 1;
+	private int numWorkers;
 	
-	public Collision(PongServer server)
+	public Collision(PongServer server, int numWorkers)
 	{
 		this.server = server;
+		this.numWorkers = numWorkers;
+		
 		paddleTop = new int[2];
 		paddleBot = new int[2];
 		paddleTop[0] = PongGUI.YSIZE / 2 - PongGUI.YSIZE / 12;
 		paddleBot[0] = PongGUI.YSIZE / 2 + PongGUI.YSIZE / 12;
 		paddleTop[1] = PongGUI.YSIZE / 2 - PongGUI.YSIZE / 12;
 		paddleBot[1] = PongGUI.YSIZE / 2 + PongGUI.YSIZE / 12;
+		
+		if(numWorkers > 1)
+		{
+			barrier = new Semaphore[2];
+			barrier[0] = new Semaphore(0);
+			barrier[1] = new Semaphore(0);
+			mutex = new Semaphore(1);
+		}
 	}
 	
-	/*
-	public void parallelStart()
+	public void parallelStep()
 	{
-		barrier = new Semaphore[2];
-		barrier[0] = new Semaphore(0);
-		barrier[1] = new Semaphore(0);
-		mutex = new Semaphore(1);
-	
-		CollisionWorker[] threads = new CollisionWorker[numWorkers];
-		for(int i = 0; i < numWorkers; i++)
+		CollisionWorker[] threads = new CollisionWorker[server.numWorkers];
+		for(int i = 0; i < server.numWorkers; i++)
 			threads[i] = new CollisionWorker(i, this);
 		
-		for(int i = 0; i < numWorkers; i++)
+		for(int i = 0; i < server.numWorkers; i++)
 			threads[i].start();
 		
-		for(int i = 0; i < numWorkers; i++)
+		for(int i = 0; i < server.numWorkers; i++)
 		{
 			try {
 				threads[i].join();
@@ -75,7 +83,6 @@ public class Collision {
 			}
 		}
 	}
-	*/
 	
 	public void sequentialStep()
 	{
@@ -105,7 +112,7 @@ public class Collision {
 		}
 	}
 
-	private void movePaddles() {
+	public void movePaddles() {
 		if(server.keyPressed[0] == PongGUI.UP_KEY)
 		{
 			if(server.paddleYPos[0] > (-1)*PongGUI.PADDLE_SIZE/2)
@@ -221,12 +228,21 @@ public class Collision {
 						(server.bodies[body].getYPos() - server.bodies[j].getYPos()));
 				
 				if( distance <= server.radius * 2 )
-					ResolveCollision(body, j);
+				{
+					if(!server.bodies[body].getBallCollides()[j])
+					{
+						server.bodies[body].setIndivBallCollide(j, true);
+						ResolveCollision(body, j);
+					}
+				}
+				else
+					server.bodies[body].setIndivBallCollide(j, false);
 			}
 		}
 		
 	}
 	
+	// resolves were MISTAKENLY? using i
 	private void detectCollisionsWalls( int num )
 	{
 		int body;
@@ -236,11 +252,25 @@ public class Collision {
 			body = server.workerBodies[num][i];
 			
 			if(server.bodies[body].getYPos() * 10 + PongGUI.YSIZE / 2 - topWall <= server.radius)
-				ResolveCollisionWall(i);
-			
+			{
+				if(!server.bodies[body].getWallCollide())
+				{
+					server.bodies[body].setWallCollide(true);
+					ResolveCollisionWall(body);
+				}
+			}
 			else if(server.bodies[body].getYPos() * 10 + PongGUI.YSIZE / 2 - botWall + 30 >= server.radius)
-				ResolveCollisionWall(i);
+			{
+				if(!server.bodies[body].getWallCollide())
+				{
+					server.bodies[body].setWallCollide(true);
+					ResolveCollisionWall(body);
+				}
+			}
+			else
+				server.bodies[body].setWallCollide(false);
 		}
+		
 		
 	}
 	
@@ -258,42 +288,72 @@ public class Collision {
 			{
 				temp = server.bodies[body].getYPos() * 10 + PongGUI.YSIZE / 2 + server.radius * 10;
 				if(temp > paddleTop[0] + 1 &&  temp < paddleBot[0] - 1)
-					ResolveCollisionPaddle(i);
+				{
+					if(!server.bodies[body].getPaddleCollide())
+					{
+						server.bodies[body].setPaddleCollide(true);
+						ResolveCollisionPaddle(body);
+					}
+				}
 				else if(temp >= paddleTop[0] - 3 && temp <= paddleTop[0] + 1)
 				{
-					ResolveCollisionPaddle(i);
-					server.bodies[i].setYVel(-PADDLE_CORNER);
+					if(!server.bodies[body].getPaddleCollide())
+					{
+						server.bodies[body].setPaddleCollide(true);
+						ResolveCollisionPaddle(body);
+						server.bodies[body].setYVel(-PADDLE_CORNER);
+					}
 				}
 				else if(temp >= paddleBot[0] - 1 && temp <= paddleBot[0] + 3)
 				{
-					ResolveCollisionPaddle(i);
-					server.bodies[i].setYVel(PADDLE_CORNER);
+					if(!server.bodies[body].getPaddleCollide())
+					{
+						server.bodies[body].setPaddleCollide(true);
+						ResolveCollisionPaddle(body);
+						server.bodies[body].setYVel(PADDLE_CORNER);
+					}
 				}
 				else
 				{
 					cont = 1;
 				}
 			}
-			if(server.bodies[body].getXPos() * 10  > rightPaddle - 10 )
+			else if(server.bodies[body].getXPos() * 10  > rightPaddle - 10 )
 			{
 				temp = server.bodies[body].getYPos() * 10 + PongGUI.YSIZE / 2 + server.radius * 10;
 				if(temp > paddleTop[1] + 1  &&  temp < paddleBot[1] - 1)
-					ResolveCollisionPaddle(i);
+				{
+					if(!server.bodies[body].getPaddleCollide())
+					{
+						server.bodies[body].setPaddleCollide(true);
+						ResolveCollisionPaddle(body);
+					}
+				}
 				else if(temp >= paddleTop[1] - 3 && temp <= paddleTop[1] + 1)
 				{
-					ResolveCollisionPaddle(i);
-					server.bodies[i].setYVel(-PADDLE_CORNER);
+					if(!server.bodies[body].getPaddleCollide())
+					{
+						server.bodies[body].setPaddleCollide(true);
+						ResolveCollisionPaddle(body);
+						server.bodies[body].setYVel(-PADDLE_CORNER);
+					}
 				}
 				else if(temp >= paddleBot[1] - 1 && temp <= paddleBot[1] + 3)
 				{
-					ResolveCollisionPaddle(i);
-					server.bodies[i].setYVel(PADDLE_CORNER);
+					if(!server.bodies[body].getPaddleCollide())
+					{
+						server.bodies[body].setPaddleCollide(true);
+						ResolveCollisionPaddle(body);
+						server.bodies[body].setYVel(PADDLE_CORNER);
+					}
 				}
 				else
 				{
 					cont = 2;
 				}
 			}
+			else
+				server.bodies[body].setPaddleCollide(false);
 		}
 	}
 	
@@ -364,8 +424,7 @@ public class Collision {
 		server.bodies[b2].setXVel(v2fx);
 		server.bodies[b2].setYVel(v2fy);
 	}
-
-	/*
+	
 	public void aquireMutex() {
 		try {
 			mutex.acquire();
@@ -387,9 +446,23 @@ public class Collision {
 	}
 
 	public void releaseAllBarrier(int barrierIndex) {
-		barrier[barrierIndex].release(numWorkers - 1);
+		barrier[barrierIndex].release(server.numWorkers - 1);
 	}
-	*/
+	
+	public void setNumArrived(int numArrived)
+	{
+		this.numArrived = numArrived;
+	}
+	
+	public int getNumArrived()
+	{
+		return numArrived;
+	}
+	
+	public int getNumWorkers()
+	{
+		return numWorkers;
+	}
 	
 	public void setCont( int help )
 	{

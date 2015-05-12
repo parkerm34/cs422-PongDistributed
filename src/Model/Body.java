@@ -5,26 +5,69 @@ import view.PongGUI;
 public class Body {
 	private Point pos;
 	private Point vel;
+	private boolean ballCollide[];
+	private boolean wallCollide;
+	private boolean paddleCollide;
 	
-	public Body( Point pos, Point vel, double radius )
+	/*
+	public Body( Point pos, Point vel, boolean collide[] )
 	{
 		this.pos = new Point(pos.x, pos.y);
 		this.vel = new Point(vel.x, vel.y);
 	}
 	
-	public Body( double xPos, double yPos, double xVel, double yVel, double radius )
+	public Body( double xPos, double yPos, double xVel, double yVel, boolean collide[] )
 	{
-		this.pos = new Point(xPos, yPos);
-		this.vel = new Point(xVel, yVel);
+		pos = new Point(xPos, yPos);
+		vel = new Point(xVel, yVel);
 	}
-	
+	*/
 	public Body()
 	{
-		double defaultXPos = PongGUI.SIZE / 2.0;
-		double defaultYPos = PongGUI.YSIZE / 2.0;
+		pos = new Point(0.0f, 0.0f);
+		vel = new Point(5.0f, 5.0f);
 		
-		this.pos = new Point(0.0f, 0.0f);
-		this.vel = new Point(10.0f, 5.0f);
+		ballCollide = new boolean[] {false};
+		wallCollide = false;
+		paddleCollide = false;
+	}
+	
+	public void setWallCollide(boolean wallCollide)
+	{
+		this.wallCollide = wallCollide;
+	}
+	
+	public boolean getWallCollide()
+	{
+		return wallCollide;
+	}
+	
+	public void setPaddleCollide(boolean paddleCollide)
+	{
+		this.paddleCollide = paddleCollide;
+	}
+	
+	public boolean getPaddleCollide()
+	{
+		return paddleCollide;
+	}
+	
+	public void setBallCollides(boolean ballCollide[])
+	{
+		this.ballCollide = new boolean[ballCollide.length];
+		
+		for(int i = 0; i < ballCollide.length; i++)
+			this.ballCollide[i] = ballCollide[i];
+	}
+	
+	public void setIndivBallCollide(int body, boolean ballCollide)
+	{
+		this.ballCollide[body] = ballCollide;
+	}
+	
+	public boolean[] getBallCollides()
+	{
+		return ballCollide;
 	}
 	
 	public void setXPos( double xPos )
