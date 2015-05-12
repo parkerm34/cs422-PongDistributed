@@ -26,6 +26,7 @@ public class PongGUI extends JFrame {
 	private PongClient client;
 	private CircleBody[] circles;
 	private Paddle paddle;
+	private Score scoreText;
 	public OptionGUI option;
 	private int paddleX;
 	private int offset;
@@ -101,6 +102,11 @@ public class PongGUI extends JFrame {
         paddle.setLocation(paddleX, YSIZE/2-YSIZE/12);
         paddle.setSize(paddle.getPreferredSize());
         drawPanel.add(paddle);
+        
+        scoreText = new Score(0);
+        scoreText.setLocation(50, 50);
+        scoreText.setSize(scoreText.getPreferredSize());
+        drawPanel.add(scoreText);
 	    
 	    drawPanel.repaint();
         this.add(drawPanel);
@@ -139,6 +145,7 @@ public class PongGUI extends JFrame {
 	    //Point loc = paddle.getLocation();
 		//paddle.setLocation(loc.x, loc.y);
 		drawPanel.add(paddle);
+		drawPanel.add(scoreText);
         drawPanel.repaint();
         //System.out.println("printed");
 	}
