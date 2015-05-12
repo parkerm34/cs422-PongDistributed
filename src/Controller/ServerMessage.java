@@ -50,7 +50,7 @@ public class ServerMessage implements Serializable {
 		for(int i = 0; i < ballPositions.length; i++)
 		{
 			this.ballPositions[i] = ballPositions[i];
-			System.out.println(ballPositions[i].x + " " + ballPositions[i].y);
+//			System.out.println(ballPositions[i].x + " " + ballPositions[i].y);
 		}
 	}
 	

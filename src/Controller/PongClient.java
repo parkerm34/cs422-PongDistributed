@@ -136,7 +136,7 @@ public class PongClient
 				
 				// TODO: Iterate through ball positions?
 				pointPos = inMsg.getBallPositions();
-				System.out.println(pointPos[0].x + " " + pointPos[0].y);
+//				System.out.println(pointPos[0].x + " " + pointPos[0].y);
 				paddleYPos = inMsg.getPaddleYPos();
 				gui.updateCircles();
 				gui.updatePaddle();

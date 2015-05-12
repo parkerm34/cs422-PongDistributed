@@ -38,6 +38,7 @@ public class Collision {
 	
 	public boolean debug = false;
 	private PongServer server;
+	private int cont = 0;
 	
 	public Collision(PongServer server)
 	{
@@ -253,10 +254,7 @@ public class Collision {
 			{
 				temp = server.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 + server.radius * 10;
 				if(temp > paddleTop[0] + 1 &&  temp < paddleBot[0] - 1)
-				{
-					System.out.println("collision left");
 					ResolveCollisionPaddle(i);
-				}
 				else if(temp >= paddleTop[0] - 3 && temp <= paddleTop[0] + 1)
 				{
 					ResolveCollisionPaddle(i);
@@ -269,19 +267,14 @@ public class Collision {
 				}
 				else
 				{
-					//System.out.println(server.bodies[body].getXPos() * 10);
-					//System.out.println("Round Over, right side wins");
-					// BALL OFF MAP, call game
+					cont = 1;
 				}
 			}
 			if(server.bodies[body].getXPos() * 10  > rightPaddle - 10 )
 			{
 				temp = server.bodies[body].getYPos() * 10 + PongGUI.SIZE / 2 + server.radius * 10;
 				if(temp > paddleTop[1] + 1  &&  temp < paddleBot[1] - 1)
-				{
-					System.out.println("collision right");
 					ResolveCollisionPaddle(i);
-				}
 				else if(temp >= paddleTop[1] - 3 && temp <= paddleTop[1] + 1)
 				{
 					ResolveCollisionPaddle(i);
@@ -294,9 +287,7 @@ public class Collision {
 				}
 				else
 				{
-					//System.out.println(server.bodies[body].getXPos() * 10);
-					//System.out.println("Round Over, left side wins");
-					// BALL OFF MAP, call game
+					cont = 2;
 				}
 			}
 		}
@@ -391,6 +382,16 @@ public class Collision {
 		barrier[barrierIndex].release(numWorkers - 1);
 	}
 	*/
+	
+	public void setCont( int help )
+	{
+		cont = help;
+	}
+	
+	public int getCont()
+	{
+		return cont;
+	}
 	
 	public void usage()
 	{

@@ -159,24 +159,51 @@ public class PongServer
 	
 	private void playPong() {
 		System.out.println("in playPong");
+		int contin = 0;
 		
 		while(true)
 		{
-			barrier[0].release();
-			barrier[1].release();
-			
-			try {
-				barrier[2].acquire(2);
-			} catch (InterruptedException e) {
-				System.err.println(e);
-				e.printStackTrace();
+			while(contin == 0)
+			{
+				barrier[0].release();
+				barrier[1].release();
+				
+				try {
+					barrier[2].acquire(2);
+				} catch (InterruptedException e) {
+					System.err.println(e);
+					e.printStackTrace();
+				}
+				
+				col = new Collision(this);
+				col.sequentialStep();
+				contin = col.getCont();
 			}
 			
-			col = new Collision(this);
-			col.sequentialStep();
-			//System.out.println("Collision called here");
-//			for(int i = 0; i < numBodies; i++)
-//				System.out.println(bodies[i].getXPos() + " " + bodies[i].getYPos());
+			/*
+			 * Expect contin to be 0 for round continuing/new round
+			 * Expect contin to be 1 for left side win, then pause for 3 seconds
+			 * Expect contin to be 2 for right side win, then pause for 3 seconds
+			 */
+			
+			if(contin == 1)
+			{
+				//Left side win
+				System.out.println("Left side won round, continuing in 3");
+			}
+			else if(contin == 2)
+			{
+				//Right side win
+				System.out.println("Right side won round, continuing in 3");
+			}
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			System.out.println("ROUND START");
+			initBodies();
+			contin = 0;
 		}
 	}
 }

@@ -65,6 +65,7 @@ public class PongSubServer extends Thread
 		update.setPaddleYPos(parent.paddleYPos[side]);
 		
 		try {
+			outStream.reset();
 			outStream.writeObject(update);
 			outStream.flush();
 			

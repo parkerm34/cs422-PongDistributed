@@ -22,8 +22,8 @@ public class Body {
 	{
 		double defaultPos = PongGUI.SIZE / 2.0;
 		
-		this.pos = new Point(0.0f, 0.0f);
-		this.vel = new Point(1.0f, 0.0f);
+		this.pos = new Point(700.0f, 250.0f);
+		this.vel = new Point(10.0f, 5.0f);
 	}
 	
 	public void setXPos( double xPos )

@@ -106,7 +106,7 @@ public class PongGUI extends JFrame {
 		if(ANIMATIONTIME > 0)
 		{
 			try {
-				Thread.sleep(ANIMATIONTIME/10);
+				Thread.sleep(ANIMATIONTIME/50);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
